@@ -1,15 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 23 14:52:52 2022
-
-@author: hdruenne
-"""
-
 from sklearn.preprocessing   import MinMaxScaler
 from sklearn.pipeline        import Pipeline
 from sklearn.svm             import SVC
 from sklearn.ensemble        import RandomForestClassifier
-from sklearn.neighbors       import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
 import numpy as np
 import gudhi as gd
@@ -19,9 +11,10 @@ from ripser import Rips
 
 rips=Rips()
 
-num_pts = 100
+#Creating the data set: a family of diagrams coming from a discrete one-parameter dynamical system with varying parameter
 
-num_diag_per_class = 100
+num_pts = 100
+num_diag_per_class = 50
 
 dgms, labs = [], []
 for idx, radius in enumerate([2.5, 3.5, 4., 4.1, 4.3]):
@@ -37,17 +30,20 @@ for idx, radius in enumerate([2.5, 3.5, 4., 4.1, 4.3]):
         dgm = ac.persistence()
         dgms.append(ac.persistence_intervals_in_dimension(1))
         
+#Separating the training set from the test set
         
 test_size            = 0.2
 perm                 = np.random.permutation(len(labs))
-limit                = np.int(test_size * len(labs))
+limit                = int(test_size * len(labs))
 test_sub, train_sub  = perm[:limit], perm[limit:]
 train_labs           = np.array(labs)[train_sub]
 test_labs            = np.array(labs)[test_sub]
 train_dgms           = [dgms[i] for i in train_sub]
 test_dgms            = [dgms[i] for i in test_sub]
 
-# Definition of pipeline
+# Definition of pipeline: which sequentially applies a list of transforms and an estimator
+# DiagramSelector: selects all the values of the persistence diagram which are not essential
+# DiagramScaler: scales the diagram into [0,1]
 pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                  ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
                  ("TDA",       gd.representations.PersistenceImage()),
@@ -68,8 +64,8 @@ param =    [{"Scaler__use":         [False],
             
             {"Scaler__use":         [True],
              "TDA":                 [gd.representations.PersistenceImage()], 
-             "TDA__resolution":     [ [5,5], [6,6] ],
-             "TDA__bandwidth":      [0.01, 0.1, 1.0, 10.0],
+             "TDA__resolution":     [[20, 20] ],
+             "TDA__bandwidth":      [0.005, 0.01, 0.1],
              "Estimator":           [SVC()]},
             
             {"Scaler__use":         [True],
@@ -79,7 +75,8 @@ param =    [{"Scaler__use":         [False],
            
            ]
 
-model = GridSearchCV(pipe, param, cv=5)
+# Crossvalidation method is used to find the best parameters and the best model
+model = GridSearchCV(pipe, param, cv=3)
 model = model.fit(train_dgms, train_labs)
 print(model.best_params_)
 print("Train accuracy = " + str(model.score(train_dgms, train_labs)))
