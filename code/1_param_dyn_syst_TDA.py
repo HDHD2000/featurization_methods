@@ -42,7 +42,7 @@ for _ in range(repetitions):
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                      ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                     ("TDA",       gd.representations.PersistenceImage()),
+                     ("TDA",       gd.representations.PersistenceImage(bandwidth = 0.005, weight = lambda x: x[1]**2, resolution = [20,20])),
                      ("Estimator", SVC())])
 
     param =    [#{"Scaler__use":         [False],
@@ -78,7 +78,6 @@ for _ in range(repetitions):
            
            ]
 
-    model = GridSearchCV(pipe, param, cv=3)
     model = pipe.fit(train_dgms, train_labs)
     train_score.append(model.score(train_dgms, train_labs))
     test_score.append(model.score(test_dgms,  test_labs))
