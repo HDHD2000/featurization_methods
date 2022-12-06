@@ -10,14 +10,16 @@ import matplotlib.pyplot as plt
 from ripser import Rips
 from gudhi.datasets.generators import points
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split
+from sklearn.cluster import KMeans
 import time
 
 #Creating the data set: a family of diagrams coming from a discrete one-parameter dynamical system with varying parameter
 
-num_pts = 1000
+num_pts = 100
 num_diag_per_class = 50
 
-repetitions = 1
+repetitions = 10
 
 test_score, train_score = [], []
 
@@ -42,7 +44,7 @@ for _ in range(repetitions):
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                      ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                     ("TDA",       gd.representations.PersistenceImage(bandwidth = 0.005, weight = lambda x: x[1]**2, resolution = [20,20])),
+                     ("TDA",       gd.representations.Entropy(mode = 'vector')),
                      ("Estimator", SVC())])
 
     param =    [#{"Scaler__use":         [False],
@@ -65,11 +67,11 @@ for _ in range(repetitions):
             # "TDA": [gd.representations.PersistenceFisherKernel()],
              #"Estimator": [SVC(kernel = "precomputed", gamma="auto")]},
             
-            {"Scaler__use":         [True],
-             "TDA":                 [gd.representations.PersistenceImage()], 
-             "TDA__resolution":     [[5, 5], [6,6] ],
-             "TDA__bandwidth":      [0.01, 0.1, 0.5, 1, 10],
-             "Estimator":           [SVC()]},
+            #{"Scaler__use":         [True],
+             #"TDA":                 [gd.representations.PersistenceImage()], 
+             #"TDA__resolution":     [[5, 5], [6,6] ],
+             #"TDA__bandwidth":      [0.01, 0.1, 0.5, 1, 10],
+             #"Estimator":           [SVC()]},
             
             #{"Scaler__use":         [True],
             # "TDA":                 [gd.representations.Landscape()], 

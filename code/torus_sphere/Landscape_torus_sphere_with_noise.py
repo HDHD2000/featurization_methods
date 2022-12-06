@@ -7,12 +7,12 @@ import numpy as np
 import gudhi as gd
 import gudhi.representations
 import matplotlib.pyplot as plt
-from ripser import Rips
 from gudhi.datasets.generators import points
 from sklearn.model_selection import train_test_split
+from sklearn.cluster import KMeans
 import time
 
-repetitions = 1
+repetitions = 10
 
 nb_points = 100
 num_diag_per_class = 100
@@ -45,8 +45,8 @@ for _ in range(repetitions):
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                      ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                     ("TDA",       gd.representations.PersistenceScaleSpaceKernel()),
-                     ("Estimator", SVC(kernel="precomputed", gamma="auto"))])
+                     ("TDA",       gd.representations.Entropy(mode = 'vector')),
+                     ("Estimator", SVC())])
 
     param =    [#{"Scaler__use":         [False],
              #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 

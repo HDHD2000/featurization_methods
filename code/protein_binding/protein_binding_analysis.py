@@ -10,9 +10,10 @@ import matplotlib.pyplot as plt
 from ripser import Rips
 from gudhi.datasets.generators import points
 from sklearn.model_selection import train_test_split
+from sklearn.cluster import KMeans
 import time
 
-repetitions = 10
+repetitions = 250
 
 test_score, train_score = [], []
 
@@ -61,8 +62,8 @@ for _ in range(repetitions):
     train_labs, test_labs, train_dgms, test_dgms = train_test_split(labs, dgms) 
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
-                         ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                         ("TDA",       gd.representations.Landscape(resolution = 1000)),
+                         #("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
+                         ("TDA",       gd.representations.Entropy(mode = 'vector')),
                          ("Estimator", SVC())])
     
     param =    [#{"Scaler__use":         [False],
@@ -95,6 +96,10 @@ for _ in range(repetitions):
                 #"TDA":                 [gd.representations.Landscape()], 
                 #"TDA__resolution":     [100],
                 #"Estimator":           [SVC]},
+                
+                #{"Scalar__use": [True],
+                #"TDA" : [gd.representations.Atol(quantiser=KMeans(n_clusters=2, random_state=202006))]
+                #"Estimator" : [SVC()]}
                 
                 ]
     
