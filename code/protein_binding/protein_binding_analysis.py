@@ -7,7 +7,6 @@ import numpy as np
 import gudhi as gd
 import gudhi.representations
 import matplotlib.pyplot as plt
-from ripser import Rips
 from gudhi.datasets.generators import points
 from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans

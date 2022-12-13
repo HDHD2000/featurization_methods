@@ -38,6 +38,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 from sklearn.base import clone 
 from tempfile import TemporaryDirectory
+from sklearn.cluster import KMeans
+from sklearn.preprocessing   import MinMaxScaler
 
 from scipy.spatial.distance import directed_hausdorff
 
@@ -65,16 +67,20 @@ num_data_test = test_labels_.size
 
 for _ in range(repetitions):
     
+    train_data = train_data_[0:999, :]
+    test_data = test_data_[0:199,:]
+    train_labels = train_labels_[0:999]
+    test_labels = test_labels_[0:199]
     
-    train_subset_size = 1000
-    l_train = [random.randint(0,num_data_train) for i in range(train_subset_size)]
-    train_data = train_data_[l_train,:]
-    train_labels = train_labels_[l_train]
+    #train_subset_size = 1000
+    #l_train = [random.randint(0,num_data_train) for i in range(train_subset_size)]
+    #train_data = train_data_[l_train,:]
+    #train_labels = train_labels_[l_train]
     
-    test_subset_size = 200
-    l_test = [random.randint(0,num_data_test) for i in range(test_subset_size)]
-    test_data = test_data_[l_test, :]
-    test_labels = test_labels_[l_test]
+    #test_subset_size = 200
+    #l_test = [random.randint(0,num_data_test) for i in range(test_subset_size)]
+    #test_data = test_data_[l_test, :]
+    #test_labels = test_labels_[l_test]
     
     # Calculate some auxiliary variables used throughout the notebook.
     min_train_data = np.min(train_data)
@@ -92,7 +98,7 @@ for _ in range(repetitions):
     ##----------------------------------------------------##
     
     # Choose filtration function.
-    filt_temp = "Rips"
+    filt_temp = "density"
     
     # Choose filtration function parameters and calculate filtration function values for the training value
     if filt_temp == "binary":
@@ -136,8 +142,8 @@ for _ in range(repetitions):
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              #("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                             ("TDA",       gd.representations.Landscape(num_landscapes=10)),
-                             ("Estimator", SVC())])
+                             ("TDA",       gd.representations.PersistenceFisherKernel()),
+                             ("Estimator", SVC(kernel="precomputed", gamma="auto"))])
         
     param =    [#{"Scaler__use":         [False],
                     #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 
