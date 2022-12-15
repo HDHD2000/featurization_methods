@@ -62,8 +62,8 @@ for _ in range(repetitions):
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                          #("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                         ("TDA",       gd.representations.Entropy(mode = 'vector')),
-                         ("Estimator", SVC())])
+                         ("TDA",       gd.representations.PersistenceFisherKernel(bandwidth_fisher = 1, bandwidth = 10)),
+                         ("Estimator", SVC(kernel = "precomputed", gamma="auto"))])
     
     param =    [#{"Scaler__use":         [False],
                 #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 

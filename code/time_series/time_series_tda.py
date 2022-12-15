@@ -12,14 +12,16 @@ from sklearn.cluster import KMeans
 import time
 import pandas as pd
 
-##-------------------------------------------------------##
-
 start = time.time()
 
-data_series, labels = load_UCR_UEA_dataset(name="ChlorineConcentration")
+##-------------------------------------------------------##
+#EXTRACTING THE DATA SET
 
-num_train = 467
-num_test = 3840
+
+data_series, labels = load_UCR_UEA_dataset(name="PigCVP")
+
+num_train = 104
+num_test = 208
 
 data_series = data_series.to_numpy()
 data_series = data_series.flatten()
@@ -30,7 +32,7 @@ num_data_series = np.shape(data_series)[0]
 
 dgms = []
 
-##Compute the persistence diagrams by first creating the 
+##Computing the persistence diagrams by first creating the 
 ##point clouds using the Takens embedding
 
 for j in range(num_data_series):
@@ -45,6 +47,9 @@ for j in range(num_data_series):
 
 ##-------------------------------------------------------##
 
+#Embedding the persistence diagrams in a Hilbert space 
+# and checking their classification rates
+
 train_dgms = dgms[0:num_train-1]
 train_labels = labels[0:num_train-1]
 test_dgms = dgms[num_train:]
@@ -54,9 +59,9 @@ if num_train+num_test == num_data_series:
     print('ALL GOOD IN THE HOOD')
 
 pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
-                             #("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                             ("TDA",       gd.representations.SlicedWassersteinKernel(bandwidth = 0.1, num_directions=20)),
-                             ("Estimator", SVC(kernel="precomputed", gamma="auto"))])
+                             ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
+                             ("TDA",       gd.representations.PersistenceImage(bandwidth = 10, weight = lambda x: x[1]**2)),
+                             ("Estimator", SVC())])
         
 #param =    [#{"Scaler__use":         [False],
                     #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 

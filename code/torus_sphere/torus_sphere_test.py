@@ -84,3 +84,32 @@ plt.show()
 plt.imshow(np.flip(np.reshape(PITorus[0], [20,20]), 0))
 plt.title("Persistence Image Torus")
 plt.show()
+
+#Persistent Silhouette
+PSSphere = gd.representations.Silhouette(resolution = 100).fit_transform([AlphaSphere.persistence_intervals_in_dimension(1)])
+PSTorus = gd.representations.Silhouette(resolution = 100).fit_transform([AlphaTorus.persistence_intervals_in_dimension(1)])
+
+print(PSSphere)
+
+
+plt.plot(PSSphere[0][:100])
+plt.title("Silhouette Sphere")
+plt.show()
+
+plt.plot(PSTorus[0][:100])
+plt.title("Silhouette Torus")
+plt.show()
+
+#Persistent Entropy
+PESphere = gd.representations.Entropy(mode="vector", resolution = 100).fit_transform([AlphaSphere.persistence_intervals_in_dimension(1)])
+PETorus = gd.representations.Entropy(mode="vector", resolution = 100).fit_transform([AlphaTorus.persistence_intervals_in_dimension(1)])
+
+print(PESphere)
+
+plt.plot(PESphere[0][:100])
+plt.title("Entropy Sphere")
+plt.show()
+
+plt.plot(PETorus[0][:100])
+plt.title("Entropy Torus")
+plt.show()

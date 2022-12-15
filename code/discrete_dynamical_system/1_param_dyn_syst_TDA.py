@@ -15,7 +15,7 @@ import time
 num_pts = 1000
 num_diag_per_class = 50
 
-repetitions = 10
+repetitions = 1
 
 test_score, train_score = [], []
 
@@ -40,7 +40,7 @@ for _ in range(repetitions):
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                      #("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                     ("TDA",       gd.representations.PersistenceWeightedGaussianKernel(bandwidth = 0.1, weight = lambda x: np.arctan(x[1]-x[0]))),
+                     ("TDA",       gd.representations.PersistenceFisherKernel()),
                      ("Estimator", SVC(kernel="precomputed", gamma="auto"))])
 
     param =    [#{"Scaler__use":         [False],
