@@ -12,12 +12,10 @@ from gudhi.datasets.generators import points
 from sklearn.model_selection import train_test_split
 import time
 
-repetitions = 20
+repetitions = 1
 
 nb_points = 1000
 num_diag_per_class = 50
-
-mu, sigma = 0, 0.5
 
 test_score, train_score = [], []
 
@@ -45,8 +43,8 @@ for _ in range(repetitions):
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                      ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                     ("TDA",       gd.representations.Landscape()),
-                     ("Estimator", SVC())])
+                     ("TDA",       gd.representations.PersistenceFisherKernel()),
+                     ("Estimator", SVC(kernel="precomputed", gamma="auto"))])
 
     model = pipe.fit(train_dgms, train_labs)
     train_score.append(model.score(train_dgms, train_labs))

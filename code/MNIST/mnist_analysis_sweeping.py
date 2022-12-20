@@ -1,8 +1,8 @@
 #import the filtration functions
-from turkes_auxiliary_functions import binary_filtration_function, greyscale_filtration_function, density_filtration_function, radial_filtration_function, distance_filtration_function, dtm_filtration_function
+from sweeping import sweep_right_to_left_filtration, sweep_left_to_right_filtration, sweep_up_down_filtration, sweep_down_up_filtration, build_point_cloud
 
 #import the PD function calculator
-from turkes_auxiliary_functions import pers_intervals_across_homdims
+from sweeping import pers_intervals_across_homdims
 
 #import plotting functions
 from turkes_auxiliary_functions import plot_image, plot_PD, plot_PI, plot_PL
@@ -50,7 +50,7 @@ import pickle # pickle.dump(), pickle.load()
 from numba import njit, prange # @njit(parallel = True), prange() 
 from joblib import Parallel, delayed # Parallel(n_jobs = -1)(delayed(function)(arguments) for arguments in arguments_array)
 
-##-----------------------------------------------------##
+##=================================================##
 
 repetitions = 1
 
@@ -63,26 +63,13 @@ start = time.time()
 num_data_train = train_labels_.size
 num_data_test = test_labels_.size
 
-# For testing purposes, we can consider a smaller subset of the dataset.
-
 for _ in range(repetitions):
     
-    train_data = train_data_[0:999, :]
-    test_data = test_data_[0:199,:]
-    train_labels = train_labels_[0:999]
-    test_labels = test_labels_[0:199]
+    train_data = train_data_[0:99, :]
+    test_data = test_data_[0:19,:]
+    train_labels = train_labels_[0:99]
+    test_labels = test_labels_[0:19]
     
-    #train_subset_size = 1000
-    #l_train = [random.randint(0,num_data_train) for i in range(train_subset_size)]
-    #train_data = train_data_[l_train,:]
-    #train_labels = train_labels_[l_train]
-    
-    #test_subset_size = 200
-    #l_test = [random.randint(0,num_data_test) for i in range(test_subset_size)]
-    #test_data = test_data_[l_test, :]
-    #test_labels = test_labels_[l_test]
-    
-    # Calculate some auxiliary variables used throughout the notebook.
     min_train_data = np.min(train_data)
     max_train_data = np.max(train_data)
     num_train_data_points = len(train_labels)
@@ -94,56 +81,22 @@ for _ in range(repetitions):
     test_data = test_data.reshape((num_test_data_points, num_pixels))
     train_data_images = train_data.reshape((num_train_data_points, num_x_pixels, num_y_pixels))
     
+    filt_func_vals_train = sweep_up_down_filtration(train_data)
+    filt_func_vals_test = sweep_up_down_filtration(test_data)
     
-    ##----------------------------------------------------##
-    
-    # Choose filtration function.
-    filt_temp = "DTM"
-    
-    # Choose filtration function parameters and calculate filtration function values for the training value
-    if filt_temp == "binary":
-        filt_func_vals_train = binary_filtration_function(train_data, 0.5)
-        filt_func_vals_test = binary_filtration_function(test_data, 0.5)
-    if filt_temp == "grsc":
-        filt_func_vals_train = greyscale_filtration_function(train_data)
-        filt_func_vals_test = greyscale_filtration_function(test_data)
-    if filt_temp == "density":
-        filt_func_vals_train = density_filtration_function(train_data, 0.5, 1) 
-        filt_func_vals_test = density_filtration_function(test_data, 0.5, 1)
-    if filt_temp == "radial":
-        filt_func_vals_train= radial_filtration_function(train_data, 0.5, 0, 0)
-        filt_func_vals_test= radial_filtration_function(test_data, 0.5, 0, 0)
-    if filt_temp == "Rips":
-        filt_func_vals_train = distance_filtration_function(train_data, 0.5)
-        filt_func_vals_test = distance_filtration_function(test_data, 0.5)
-    if filt_temp == "DTM":
-        filt_func_vals_train = dtm_filtration_function(train_data, 0.5, 0.05)
-        filt_func_vals_test = dtm_filtration_function(test_data, 0.5, 0.05)
-    
-    ##-----------------------------------------------------##
-    
-    # Choose PD parameters (for Rips and DTM) and calculate PDs.
-    PDs0_train, PDs1_train = pers_intervals_across_homdims(filt_func_vals_train, filt_temp, train_data, 0.5)
-    PDs0_test, PDs1_test = pers_intervals_across_homdims(filt_func_vals_test, filt_temp, test_data, 0.5)    
+    PDs0_train, PDs1_train = pers_intervals_across_homdims(filt_func_vals_train, train_data, 0.5)
+    PDs0_test, PDs1_test = pers_intervals_across_homdims(filt_func_vals_test, test_data, 0.5)    
     
     # Choose homological dimension.
     train_dgms = PDs1_train
     test_dgms = PDs1_test
     
-    # Calculate maximum value in PDs, to define PI bandwidth
-    # and to determine the range of x and y-axis in PD plot.
-    max_PDs = 0
-    for PD in train_dgms:
-        max_PD = np.max(PD)
-        if max_PD > max_PDs:
-            max_PDs = max_PD        
-    
     ##---------------------------------------------------------##
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              #("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                             ("TDA",       gd.representations.PersistenceFisherKernel()),
-                             ("Estimator", SVC(kernel = "precomputed", gamma="auto"))])
+                             ("TDA",       gd.representations.SlicedWassersteinKernel(bandwidth = 1, num_directions = 100)),
+                             ("Estimator", SVC())])
         
     param =    [#{"Scaler__use":         [False],
                     #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 
@@ -186,7 +139,7 @@ for _ in range(repetitions):
     model = pipe.fit(train_dgms, train_labels)
     train_score.append(model.score(train_dgms, train_labels))
     test_score.append(model.score(test_dgms,  test_labels))
-
+    
 print('Average training score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(train_score)))
 print('Average testing score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(test_score)))
 

@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 import time
 
-repetitions = 10
+repetitions = 1
 
 nb_points = 100
 num_diag_per_class = 100
@@ -45,8 +45,8 @@ for _ in range(repetitions):
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                      ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                     ("TDA",       gd.representations.Entropy(mode = 'vector')),
-                     ("Estimator", SVC())])
+                     ("TDA",       gd.representations.PersistenceFisherKernel()),
+                     ("Estimator", SVC(kernel="precomputed", gamma="auto"))])
 
     param =    [#{"Scaler__use":         [False],
              #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 

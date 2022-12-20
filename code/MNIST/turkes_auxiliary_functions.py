@@ -386,7 +386,7 @@ def pers_intervals_across_homdims(filt_func_vals_data, filt = " ", data = [], th
     
     Output:
     > pers_intervals_homdim0_data: list of persistence intervals (b, d) corresponding to 0-dim cycles (connected components).
-    > pers_intervals_homdim1_data: list of persistence intervals (b, d) corresponding to 0-dim cycles (holes).
+    > pers_intervals_homdim1_data: list of persistence intervals (b, d) corresponding to 1-dim cycles (holes).
     '''    
     pers_intervals_homdim0_data = []
     pers_intervals_homdim1_data = []   
