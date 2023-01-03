@@ -2,52 +2,66 @@ import numpy as np
 import gudhi as gd 
 
 
+def sweep_down_up_filtration(data):
+    num_data_points = data.shape[0]
+    num_pixels = data.shape[1]
+    num_x_pixels = np.sqrt(num_pixels)
+    filt_func_vals_data = np.zeros((num_data_points, num_pixels))
+    
+    for i in range(num_data_points):
+        for j in range(num_pixels):
+            if data[i,j] <= 0.5 * 255:
+                filt_func_vals_data[i,j] = 29
+            else:
+                filt_func_vals_data[i,j] = int(j/num_x_pixels + 1)
+    
+    return filt_func_vals_data   
+    
+def sweep_up_down_filtration(data):
+    num_data_points = data.shape[0]
+    num_pixels = data.shape[1]
+    num_x_pixels = np.sqrt(num_pixels)
+    filt_func_vals_data = np.zeros((num_data_points, num_pixels))
+    
+    for i in range(num_data_points):
+        for j in range(num_pixels):
+            if data[i,j] <= 0.5 * 255:
+                filt_func_vals_data[i,j] = 29
+            else:
+                filt_func_vals_data[i,j] = num_x_pixels - int(j/num_x_pixels + 1)
+                
+    return filt_func_vals_data  
+
 def sweep_right_to_left_filtration(data):
     num_data_points = data.shape[0]
     num_pixels = data.shape[1]
     num_x_pixels = np.sqrt(num_pixels)
     filt_vals = np.zeros((num_pixels,))
     filt_func_vals_data = np.zeros((num_data_points, num_pixels))
-    for j in range(num_pixels):
-        filt_vals[j] = int(j/num_x_pixels + 1)
-    for i in range(num_data_points):
-        filt_func_vals_data[i] = filt_vals
-    return filt_func_vals_data   
     
+    for i in range(num_data_points):
+        for j in range(num_pixels):
+            if data[i,j] <= 0.5 * 255:
+                filt_func_vals_data[i,j] = 29
+            else:
+                filt_func_vals_data[i,j] = j % num_x_pixels
+                
+    return filt_func_vals_data
+
 def sweep_left_to_right_filtration(data):
     num_data_points = data.shape[0]
     num_pixels = data.shape[1]
     num_x_pixels = np.sqrt(num_pixels)
     filt_vals = np.zeros((num_pixels,))
     filt_func_vals_data = np.zeros((num_data_points, num_pixels))
-    for j in range(num_pixels):
-        filt_vals[j] = num_x_pixels - int(j/num_x_pixels + 1)
+    
     for i in range(num_data_points):
-        filt_func_vals_data[i] = filt_vals
-    return filt_func_vals_data
-
-def sweep_up_down_filtration(data):
-    num_data_points = data.shape[0]
-    num_pixels = data.shape[1]
-    num_x_pixels = np.sqrt(num_pixels)
-    filt_vals = np.zeros((num_pixels,))
-    filt_func_vals_data = np.zeros((num_data_points, num_pixels))
-    for j in range(num_pixels):
-        filt_vals[j] = j % num_x_pixels
-    for i in range(num_data_points):
-        filt_func_vals_data[i] = filt_vals
-    return filt_func_vals_data
-
-def sweep_down_up_filtration(data):
-    num_data_points = data.shape[0]
-    num_pixels = data.shape[1]
-    num_x_pixels = np.sqrt(num_pixels)
-    filt_vals = np.zeros((num_pixels,))
-    filt_func_vals_data = np.zeros((num_data_points, num_pixels))
-    for j in range(num_pixels):
-        filt_vals[j] = (num_x_pixels - j - 1) % num_x_pixels
-    for i in range(num_data_points):
-        filt_func_vals_data[i] = filt_vals
+        for j in range(num_pixels):
+            if data[i,j] <= 0.5 * 255:
+                filt_func_vals_data[i,j] = 29
+            else:
+                filt_func_vals_data[i,j] = (num_x_pixels - j - 1) % num_x_pixels
+                
     return filt_func_vals_data
 
 def build_point_cloud(data_point, threshold_grsc_perc):  
@@ -68,8 +82,7 @@ def build_point_cloud(data_point, threshold_grsc_perc):
 
 ##------------------------------------------------------##
 
-def pers_intervals_across_homdims(filt_func_vals_data, data = [], threshold_grsc_perc = 0.5):
-    pers_intervals_homdim0_data = []
+def pers_intervals_across_homdims(filt_func_vals_data, data, threshold_grsc_perc = 0.5):
     pers_intervals_homdim1_data = []   
     
     for i, filt_func_vals_data_point in enumerate(filt_func_vals_data):
@@ -79,16 +92,14 @@ def pers_intervals_across_homdims(filt_func_vals_data, data = [], threshold_grsc
                                                    top_dimensional_cells = filt_func_vals_data_point) 
         simplex_tree = simplicial_complex
         
-        homdims_pers_intervals = simplex_tree.persistence()          
-        pers_intervals_homdim0 = simplex_tree.persistence_intervals_in_dimension(0)
+        print(simplex_tree.num_simplices())
+        
+        homdims_pers_intervals = simplex_tree.persistence()
         pers_intervals_homdim1 = simplex_tree.persistence_intervals_in_dimension(1)
         
-        if(len(pers_intervals_homdim0) == 0):
-                pers_intervals_homdim0 = np.asarray([[0, 0]])
         if(len(pers_intervals_homdim1) == 0):
                 pers_intervals_homdim1 = np.asarray([[0, 0]])    
         
-        pers_intervals_homdim0_data.append(pers_intervals_homdim0)
         pers_intervals_homdim1_data.append(pers_intervals_homdim1)
 
-    return pers_intervals_homdim0_data, pers_intervals_homdim1_data
+    return pers_intervals_homdim1_data

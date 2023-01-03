@@ -81,11 +81,11 @@ for _ in range(repetitions):
     test_data = test_data.reshape((num_test_data_points, num_pixels))
     train_data_images = train_data.reshape((num_train_data_points, num_x_pixels, num_y_pixels))
     
-    filt_func_vals_train = sweep_up_down_filtration(train_data)
-    filt_func_vals_test = sweep_up_down_filtration(test_data)
+    filt_func_vals_train = sweep_right_to_left_filtration(train_data)
+    filt_func_vals_test = sweep_right_to_left_filtration(test_data)
     
-    PDs0_train, PDs1_train = pers_intervals_across_homdims(filt_func_vals_train, train_data, 0.5)
-    PDs0_test, PDs1_test = pers_intervals_across_homdims(filt_func_vals_test, test_data, 0.5)    
+    PDs1_train = pers_intervals_across_homdims(filt_func_vals_train, train_data, 0.5)
+    PDs1_test = pers_intervals_across_homdims(filt_func_vals_test, test_data, 0.5)    
     
     # Choose homological dimension.
     train_dgms = PDs1_train
@@ -96,7 +96,7 @@ for _ in range(repetitions):
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              #("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
                              ("TDA",       gd.representations.SlicedWassersteinKernel(bandwidth = 1, num_directions = 100)),
-                             ("Estimator", SVC())])
+                             ("Estimator", SVC(kernel="precomputed", gamma="auto"))])
         
     param =    [#{"Scaler__use":         [False],
                     #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 

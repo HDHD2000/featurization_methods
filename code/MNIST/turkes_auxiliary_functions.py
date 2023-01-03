@@ -429,8 +429,11 @@ def pers_intervals_across_homdims(filt_func_vals_data, filt = " ", data = [], th
 
         homdims_pers_intervals = simplex_tree.persistence() # needs to be called before persistence_intervals_in_dimension()           
         pers_intervals_homdim0 = simplex_tree.persistence_intervals_in_dimension(0)
-        pers_intervals_homdim1 = simplex_tree.persistence_intervals_in_dimension(1)        
-       
+        pers_intervals_homdim1 = simplex_tree.persistence_intervals_in_dimension(1)     
+        
+        print(simplex_tree.num_simplices())
+        print(simplex_tree.persistent_betti_numbers(0,1000))
+        
         # If the list of persistence intervals is empty, gd.representations.PersistenceImage().fit_transfrom()
         # returns an error. Therefore, we replace such lists with [[0, 0]], and this has no influence on the 
         # calculation of Wasserstein distances.

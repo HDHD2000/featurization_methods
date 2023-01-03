@@ -67,10 +67,10 @@ num_data_test = test_labels_.size
 
 for _ in range(repetitions):
     
-    train_data = train_data_[0:999, :]
-    test_data = test_data_[0:199,:]
-    train_labels = train_labels_[0:999]
-    test_labels = test_labels_[0:199]
+    train_data = train_data_[0:19, :]
+    test_data = test_data_[0:19,:]
+    train_labels = train_labels_[0:19]
+    test_labels = test_labels_[0:19]
     
     #train_subset_size = 1000
     #l_train = [random.randint(0,num_data_train) for i in range(train_subset_size)]
@@ -98,7 +98,7 @@ for _ in range(repetitions):
     ##----------------------------------------------------##
     
     # Choose filtration function.
-    filt_temp = "DTM"
+    filt_temp = "grsc"
     
     # Choose filtration function parameters and calculate filtration function values for the training value
     if filt_temp == "binary":
@@ -142,8 +142,8 @@ for _ in range(repetitions):
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              #("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                             ("TDA",       gd.representations.PersistenceFisherKernel()),
-                             ("Estimator", SVC(kernel = "precomputed", gamma="auto"))])
+                             ("TDA",       gd.representations.Landscape()),
+                             ("Estimator", SVC())])
         
     param =    [#{"Scaler__use":         [False],
                     #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 
