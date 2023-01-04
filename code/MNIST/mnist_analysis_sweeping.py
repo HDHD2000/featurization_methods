@@ -9,6 +9,7 @@ from turkes_auxiliary_functions import plot_image, plot_PD, plot_PI, plot_PL
 
 #import the mnist data set
 from keras.datasets import mnist
+from sklearn.ensemble        import RandomForestClassifier
 
 #import additional libraries
 import numpy as np # np.loadtxt(), np.sum(), np.max(), np.random.uniform(), etc.
@@ -65,10 +66,10 @@ num_data_test = test_labels_.size
 
 for _ in range(repetitions):
     
-    train_data = train_data_[0:99, :]
-    test_data = test_data_[0:19,:]
-    train_labels = train_labels_[0:99]
-    test_labels = test_labels_[0:19]
+    train_data = train_data_[0:999, :]
+    test_data = test_data_[0:199,:]
+    train_labels = train_labels_[0:999]
+    test_labels = test_labels_[0:199]
     
     min_train_data = np.min(train_data)
     max_train_data = np.max(train_data)
@@ -81,22 +82,42 @@ for _ in range(repetitions):
     test_data = test_data.reshape((num_test_data_points, num_pixels))
     train_data_images = train_data.reshape((num_train_data_points, num_x_pixels, num_y_pixels))
     
-    filt_func_vals_train = sweep_right_to_left_filtration(train_data)
-    filt_func_vals_test = sweep_right_to_left_filtration(test_data)
+    filt_func_vals_train_right_left = sweep_right_to_left_filtration(train_data)
+    filt_func_vals_test_right_left = sweep_right_to_left_filtration(test_data)
+    PDs1_train_right_left = pers_intervals_across_homdims(filt_func_vals_train_right_left, train_data, 0.5)
+    PDs1_test_right_left = pers_intervals_across_homdims(filt_func_vals_test_right_left, test_data, 0.5) 
     
-    PDs1_train = pers_intervals_across_homdims(filt_func_vals_train, train_data, 0.5)
-    PDs1_test = pers_intervals_across_homdims(filt_func_vals_test, test_data, 0.5)    
+    filt_func_vals_train_left_right = sweep_left_to_right_filtration(train_data)
+    filt_func_vals_test_left_right = sweep_left_to_right_filtration(test_data)
+    PDs1_train_left_right = pers_intervals_across_homdims(filt_func_vals_train_left_right, train_data, 0.5)
+    PDs1_test_left_right = pers_intervals_across_homdims(filt_func_vals_test_left_right, test_data, 0.5)    
+    
+    filt_func_vals_train_up_down = sweep_up_down_filtration(train_data)
+    filt_func_vals_test_up_down = sweep_up_down_filtration(test_data)
+    PDs1_train_up_down = pers_intervals_across_homdims(filt_func_vals_train_up_down, train_data, 0.5)
+    PDs1_test_up_down = pers_intervals_across_homdims(filt_func_vals_test_up_down, test_data, 0.5)
+    
+    filt_func_vals_train_down_up = sweep_down_up_filtration(train_data)
+    filt_func_vals_test_down_up = sweep_down_up_filtration(test_data)
+    PDs1_train_down_up = pers_intervals_across_homdims(filt_func_vals_train_down_up, train_data, 0.5)
+    PDs1_test_down_up = pers_intervals_across_homdims(filt_func_vals_test_down_up, test_data, 0.5)
     
     # Choose homological dimension.
-    train_dgms = PDs1_train
-    test_dgms = PDs1_test
+    train_dgms = []
+    test_dgms = []
     
+    for i in range(num_train_data_points):
+        train_dgms.append(np.concatenate((PDs1_train_left_right[i], PDs1_train_right_left[i], PDs1_train_up_down[i], PDs1_train_down_up[i])))
+    for j in range(num_test_data_points):
+        test_dgms.append(np.concatenate((PDs1_test_left_right[j], PDs1_test_right_left[j], PDs1_test_up_down[j], PDs1_test_down_up[j])))
+    
+
     ##---------------------------------------------------------##
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
-                             #("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                             ("TDA",       gd.representations.SlicedWassersteinKernel(bandwidth = 1, num_directions = 100)),
-                             ("Estimator", SVC(kernel="precomputed", gamma="auto"))])
+                             ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
+                             ("TDA",       gd.representations.PersistenceWeightedGaussianKernel(bandwidth = 0.1, weight = lambda x: np.arctan(x[1]-x[0]))),
+                             ("Estimator", SVC(kernel = "precomputed", gamma="auto"))])
         
     param =    [#{"Scaler__use":         [False],
                     #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 

@@ -92,10 +92,10 @@ def pers_intervals_across_homdims(filt_func_vals_data, data, threshold_grsc_perc
                                                    top_dimensional_cells = filt_func_vals_data_point) 
         simplex_tree = simplicial_complex
         
-        print(simplex_tree.num_simplices())
-        
         homdims_pers_intervals = simplex_tree.persistence()
         pers_intervals_homdim1 = simplex_tree.persistence_intervals_in_dimension(1)
+        
+        #gd.plot_persistence_diagram(homdims_pers_intervals)
         
         if(len(pers_intervals_homdim1) == 0):
                 pers_intervals_homdim1 = np.asarray([[0, 0]])    
