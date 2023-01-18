@@ -18,10 +18,10 @@ start = time.time()
 #EXTRACTING THE DATA SET
 
 
-data_series, labels = load_UCR_UEA_dataset(name="PigCVP")
+data_series, labels = load_UCR_UEA_dataset(name="Lightning7")
 
-num_train = 104
-num_test = 208
+num_train = 70
+num_test = 73
 
 data_series = data_series.to_numpy()
 data_series = data_series.flatten()
@@ -60,8 +60,8 @@ if num_train+num_test == num_data_series:
 
 pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                             ("TDA",       gd.representations.PersistenceImage(bandwidth = 10, weight = lambda x: x[1]**2)),
-                             ("Estimator", SVC())])
+                             ("TDA",       gd.representations.PersistenceFisherKernel(bandwidth = 1)),
+                             ("Estimator", SVC(kernel="precomputed", gamma="auto"))])
         
 #param =    [#{"Scaler__use":         [False],
                     #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 
@@ -97,8 +97,7 @@ pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, 
                     
                     #{"Scalar__use": [True],
                     #"TDA" : [gd.representations.Atol(quantiser=KMeans(n_clusters=2, random_state=202006))]
-                    #"Estimator" : [SVC()]}
-                    
+                    #"Estimator" : [SVC()]} 
 #      ]
 
 model = pipe.fit(train_dgms, train_labels)

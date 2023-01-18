@@ -66,10 +66,10 @@ num_data_test = test_labels_.size
 
 for _ in range(repetitions):
     
-    train_data = train_data_[0:999, :]
-    test_data = test_data_[0:199,:]
-    train_labels = train_labels_[0:999]
-    test_labels = test_labels_[0:199]
+    train_data = train_data_[0:9, :]
+    test_data = test_data_[0:1,:]
+    train_labels = train_labels_[0:9]
+    test_labels = test_labels_[0:1]
     
     min_train_data = np.min(train_data)
     max_train_data = np.max(train_data)
@@ -107,17 +107,17 @@ for _ in range(repetitions):
     test_dgms = []
     
     for i in range(num_train_data_points):
-        train_dgms.append(np.concatenate((PDs1_train_left_right[i], PDs1_train_right_left[i], PDs1_train_up_down[i], PDs1_train_down_up[i])))
+        train_dgms.append([PDs1_train_left_right[i], PDs1_train_right_left[i], PDs1_train_up_down[i], PDs1_train_down_up[i]])
     for j in range(num_test_data_points):
-        test_dgms.append(np.concatenate((PDs1_test_left_right[j], PDs1_test_right_left[j], PDs1_test_up_down[j], PDs1_test_down_up[j])))
+        test_dgms.append([PDs1_test_left_right[j], PDs1_test_right_left[j], PDs1_test_up_down[j], PDs1_test_down_up[j]])
     
 
     ##---------------------------------------------------------##
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                             ("TDA",       gd.representations.PersistenceWeightedGaussianKernel(bandwidth = 0.1, weight = lambda x: np.arctan(x[1]-x[0]))),
-                             ("Estimator", SVC(kernel = "precomputed", gamma="auto"))])
+                             ("TDA",       gd.representations.Landscape(sample_range = [-25,25])),
+                             ("Estimator", RandomForestClassifier())])
         
     param =    [#{"Scaler__use":         [False],
                     #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 
