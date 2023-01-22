@@ -7,4 +7,12 @@ The four kernel methods used here are: the Sliced Wasserstein kernel (SWK), the 
 The four vectorization methods used here are: the Persistence Landscape, the Persistence Image, the Persistence Silhouette and the Persistence Entropy.
 
 The goal is to see how these featurization methods behave in terms of computational efficiency and classification accuracy in the case of each data set.
-For all data sets, the code used to construct the persistence diagrams from the data set, apply the featurization method and classify using the SVC machien learning method is heavily inspired from the GUDHI textbooks.
+For all data sets, the code used to construct the persistence diagrams from the data set, apply the featurization method and classify using the SVC machien learning method is heavily inspired from the GUDHI Jupyter textbooks.
+Their textbooks can be found on their github page: https://github.com/GUDHI/TDA-tutorial.
+Our code for these classification tasks are found in the 'code' folder.
+This folder contains five other folders corresponding to each data set we are studying.
+Each of these folders contains python code than can be implemented to study the behaviour of these featurization methods.
+
+We decided to not include the code for finding the best parameters for each featurization method.
+We decided instead to write down as comments the parameters we found gave good (it not the best) classification results and computational time.
+The recommended parameters are found at the end of each code file.
