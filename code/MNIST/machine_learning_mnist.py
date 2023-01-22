@@ -75,6 +75,8 @@ def compute_persistence(directional_transform):
     barcode = simplex_tree.persistence()
     dgms_lower_0 = simplex_tree.persistence_intervals_in_dimension(0)
     dgms_lower_1 = simplex_tree.persistence_intervals_in_dimension(1)
+    if len(dgms_lower_1) == 0:
+        dgms_lower_1 = np.array([0.0,0.0]).reshape((1,2))
     dgms_lower = [dgms_lower_0, dgms_lower_1]
     return dgms_lower
 
@@ -88,14 +90,14 @@ def append_dim_list(dgms, dim_list):
             birth = dgms[k][1]
             death = dgms[k][0]
         if math.isinf(death):
-            b = 50
+            b = 100
         else:
             b = death
         t = [birth, b]
         jth_pt.append(t)
     dim_list.append(np.array(jth_pt))
     
-    
+#print(np.shape(np.array([0.0,0.0]).reshape((1,2))))
 
 n=110
 label = test_y[n]
@@ -116,7 +118,7 @@ btt.axes.get_xaxis().set_visible(False)
 btt.axes.get_yaxis().set_visible(False)
 plt.savefig('mnist_eight_sweeps.png')
 
-tuning = np.arange(0,10000)
+tuning = np.arange(0,1000)
 unused_index, tuning_index = train_test_split(tuning, test_size = .1, random_state=1)
 n = tuning_index.shape[0]
 obs = np.arange(0,n)
@@ -169,10 +171,12 @@ one_dim_rtl_test = np.array(one_dim_1)[test_index]
 one_dim_ttb_test = np.array(one_dim_2)[test_index]
 one_dim_btt_test = np.array(one_dim_3)[test_index]
 
-dgms_lower= compute_persistence(imgs[0])
-    
-n = [3]
-r = [100]
+dgms_lower = compute_persistence(imgs[0])
+
+
+""" 
+n = [10]
+r = [50,100]
 
 train_accuracy = []
 test_accuracy = []
@@ -198,13 +202,6 @@ for i in n:
         X_train_features = np.column_stack((X_train_features_1_ltr_landscapes,X_train_features_1_rtl_landscapes,X_train_features_1_ttb_landscapes,X_train_features_1_btt_landscapes,X_train_features_0_ltr_landscapes,X_train_features_0_rtl_landscapes,X_train_features_0_btt_landscapes,X_train_features_0_ttb_landscapes))
         X_test_features = np.column_stack((X_test_features_1_ltr_landscapes,X_test_features_1_rtl_landscapes,X_test_features_1_ttb_landscapes,X_test_features_1_btt_landscapes,X_test_features_0_ltr_landscapes,X_test_features_0_rtl_landscapes,X_test_features_0_btt_landscapes,X_test_features_0_ttb_landscapes))
 
-        ridge_model = RidgeClassifier().fit(X_train_features, y_train)
-        train_accuracy.append(ridge_model.score(X_train_features, y_train))
-        test_accuracy.append(ridge_model.score(X_test_features, y_test))
-        n_model.append(i)
-        r_model.append(j)
-        model_type.append('Ridge Regression')
-        c_model.append(0)
         c = [20]
         for k in c:
             clf = SVC(kernel='rbf', C=k).fit(X_train_features, y_train)
@@ -214,7 +211,7 @@ for i in n:
             r_model.append(j)
             model_type.append('SVC')
             c_model.append(k)
-            
+
 landscape_results = pd.DataFrame()
 landscape_results['Training Accuracy'] = train_accuracy
 landscape_results['Test Accuracy'] = test_accuracy
@@ -226,7 +223,93 @@ landscape_results['Model Type'] = model_type
 landscape_sorted = landscape_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
 print(landscape_sorted[0:50])
 
+""" 
+  
+pixels = [[30,30]]
+spread = [1]
+
+train_accuracy = []
+test_accuracy = []
+p_model = []
+s_model = []
+c_model = []
+model_type = []
+
+for p in pixels:
+    for s in spread:
+        X_train_features_0_ltr_imgs, X_test_features_0_ltr_imgs = persistence_image_features(zero_dim_ltr_train, zero_dim_ltr_test, pixels=p, spread=s)
+        X_train_features_0_rtl_imgs, X_test_features_0_rtl_imgs = persistence_image_features(zero_dim_rtl_train, zero_dim_rtl_test, pixels=p, spread=s)
+        X_train_features_0_ttb_imgs, X_test_features_0_ttb_imgs = persistence_image_features(zero_dim_ttb_train, zero_dim_ttb_test, pixels=p, spread=s)
+        X_train_features_0_btt_imgs, X_test_features_0_btt_imgs = persistence_image_features(zero_dim_btt_train, zero_dim_btt_test, pixels=p, spread=s)
+
+        X_train_features_1_ltr_imgs, X_test_features_1_ltr_imgs = persistence_image_features(one_dim_ltr_train, one_dim_ltr_test, pixels=p, spread=s)
+        X_train_features_1_rtl_imgs, X_test_features_1_rtl_imgs = persistence_image_features(one_dim_rtl_train, one_dim_rtl_test, pixels=p, spread=s)
+        X_train_features_1_ttb_imgs, X_test_features_1_ttb_imgs = persistence_image_features(one_dim_ttb_train, one_dim_ttb_test, pixels=p, spread=s)
+        X_train_features_1_btt_imgs, X_test_features_1_btt_imgs = persistence_image_features(one_dim_btt_train, one_dim_btt_test, pixels=p, spread=s)
+        
+        X_train_features = np.column_stack((X_train_features_1_ltr_imgs,X_train_features_1_rtl_imgs,X_train_features_1_ttb_imgs,X_train_features_1_btt_imgs,X_train_features_0_ltr_imgs,X_train_features_0_rtl_imgs,X_train_features_0_btt_imgs,X_train_features_0_ttb_imgs))
+        X_test_features = np.column_stack((X_test_features_1_ltr_imgs,X_test_features_1_rtl_imgs,X_test_features_1_ttb_imgs,X_test_features_1_btt_imgs,X_test_features_0_ltr_imgs,X_test_features_0_rtl_imgs,X_test_features_0_btt_imgs,X_test_features_0_ttb_imgs))
+
+        c = [20]
+        for i in c:
+            clf = SVC(kernel='rbf', C=i).fit(X_train_features, y_train)
+            train_accuracy.append(clf.score(X_train_features, y_train))
+            test_accuracy.append(clf.score(X_test_features, y_test))
+            p_model.append(p)
+            s_model.append(s)
+            model_type.append('SVC')
+            c_model.append(i)
+            
+pi_results = pd.DataFrame()
+pi_results['Training Accuracy'] = train_accuracy
+pi_results['Test Accuracy'] = test_accuracy
+pi_results['p'] = p_model
+pi_results['s'] = s_model
+pi_results['c'] = c_model
+pi_results['Model Type'] = model_type
+
+pi_sorted = pi_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
+print(pi_sorted[0:60])
+
 pass 
 end = time.time()
 delta = end - start
 print("took " + str(delta) + " seconds to process")
+
+
+"""
+
+'BEST' PARAMETERS:
+    SWK: - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: - bandwidth = 
+       - SVC constant = 
+    
+    PFK : - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant = 
+       
+    Landscape: - num_landscapes = 10
+       - resolution = 50
+       - SVC constant = 20
+       
+    Persistence Images: - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 
+       
+    Persistence Silhouette: - resolution = 
+       - weight = 
+       - SVC constant = 
+    
+    Persistent Entropy: - resolution = 
+       - mode = 
+       - SVC constant = 
+
+"""

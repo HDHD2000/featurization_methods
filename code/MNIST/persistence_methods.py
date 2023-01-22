@@ -4,6 +4,7 @@ import ATS
 import time
 from sklearn import mixture
 from gudhi.representations.vector_methods import Landscape
+from gudhi.representations.vector_methods import PersistenceImage
 from persim import PersImage
 from sklearn.neighbors import DistanceMetric
 
@@ -115,15 +116,13 @@ def landscape_features(X_train, X_test, num_landscapes=5, resolution=100):
     X_test_features = lr.transform(X_test)
     return X_train_features, X_test_features
 
-def persistence_image_features(X_train, X_test, pixels=[20,20], spread=1):
-    start = time.time()
-    pim = PersImage(pixels=pixels, spread=spread)
+def persistence_image_features(X_train, X_test, pixels=[30,30], spread=1, b = 1):
+    pim = PersistenceImage(bandwidth = b, weight = )
     imgs_train = pim.transform(X_train)
     X_train_features = np.array([img.flatten() for img in imgs_train])
     pim = PersImage(pixels=pixels, spread=spread)
     imgs_test = pim.transform(X_test)
     X_test_features = np.array([img.flatten() for img in imgs_test])
-    print("Total Time (Persistence Images): ", time.time()-start)
     return X_train_features, X_test_features
 
 def fast_hk(dgm0,dgm1,sigma=.4):

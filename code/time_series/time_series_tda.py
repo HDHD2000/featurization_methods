@@ -18,10 +18,10 @@ start = time.time()
 #EXTRACTING THE DATA SET
 
 
-data_series, labels = load_UCR_UEA_dataset(name="Lightning7")
+data_series, labels = load_UCR_UEA_dataset(name="WordSynonyms")
 
-num_train = 70
-num_test = 73
+num_train = 267
+num_test = 638
 
 data_series = data_series.to_numpy()
 data_series = data_series.flatten()
@@ -60,46 +60,9 @@ if num_train+num_test == num_data_series:
 
 pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                             ("TDA",       gd.representations.PersistenceFisherKernel(bandwidth = 1)),
-                             ("Estimator", SVC(kernel="precomputed", gamma="auto"))])
-        
-#param =    [#{"Scaler__use":         [False],
-                    #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 
-                    #"TDA__bandwidth":      [0.1, 1.0],
-                    # "TDA__num_directions": [20],
-                    # "Estimator":           [SVC(kernel="precomputed", gamma="auto")]},
-                    
-                    #{"Scaler__use":         [False],
-                    # "TDA":                 [gd.representations.PersistenceWeightedGaussianKernel()], 
-                    #  "TDA__bandwidth":      [0.1, 0.01],
-                    # "TDA__weight":         [lambda x: np.arctan(x[1]-x[0])], 
-                    #"Estimator":           [SVC(kernel="precomputed", gamma="auto")]},
-                    
-                    #{"Scalar__use": [False],
-                    #"TDA": [gd.representations.PersistenceScaleSpaceKernel()],
-                    #"Estimator": [SVC(kernel = "precomputed", gamma="auto")]},
-                    
-                    #{"Scalar__use" : [False],
-                    # "TDA": [gd.representations.PersistenceFisherKernel()],
-                    #"Estimator": [SVC(kernel = "precomputed", gamma="auto")]},
-                    
-                    #{"Scaler__use":         [True],
-                     #"TDA":                 [gd.representations.PersistenceImage()], 
-                    # "TDA__resolution":     [[20, 20] ],
-                     #"TDA__bandwidth":      [0.05 * max_PDs],
-                     #"TDA_weight": [weight = lambda x: x[1]**2],
-                     #"Estimator":           [SVC()]},
-                    
-                    #{"Scaler__use":         [True],
-                    #"TDA":                 [gd.representations.Landscape()], 
-                    #"TDA__resolution":     [100],
-                    #"Estimator":           [SVC]},
-                    
-                    #{"Scalar__use": [True],
-                    #"TDA" : [gd.representations.Atol(quantiser=KMeans(n_clusters=2, random_state=202006))]
-                    #"Estimator" : [SVC()]} 
-#      ]
-
+                             ("TDA",       gd.representations.PersistenceFisherKernel()), #change the featurization methods following the recommended values below
+                             ("Estimator", SVC(kernel="precomputed", gamma="auto"))]) #change the constant 'C' following the recommendations below
+                                # for kernel methods further add 'kernel="precomputed", gamma="auto"' in SVC()
 model = pipe.fit(train_dgms, train_labels)
 print('Training score: ' + str(model.score(train_dgms, train_labels)))
 print('Testing score: ' + str(model.score(test_dgms,  test_labels)))
@@ -108,3 +71,464 @@ pass
 end = time.time()
 delta = end - start
 print("took " + str(delta) + " seconds to process")
+
+##-----------------------------------------------##
+
+#Parameters for the different time series data sets and for each featurization method
+
+"""
+
+'BEST' PARAMETERS:
+
+ADIAC:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+
+CHLORINE CONCENTRATION:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+    
+COMPUTERS:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+    
+ECGFIVEDAYS:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+    
+LIGHTNING7:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+    
+SHAPELETSIM:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+    
+TRACE:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+    
+CHINATOWN:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+    
+GUNPOINTAGESPAN:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+    
+PIGCVP:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+    
+WORDSYNONYMS:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+
+"""

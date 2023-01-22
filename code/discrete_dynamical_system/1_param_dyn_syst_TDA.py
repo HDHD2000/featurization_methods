@@ -87,3 +87,48 @@ pass
 end = time.time()
 delta = end - start
 print("took " + str(delta) + " seconds to process")
+
+"""
+
+'BEST' PARAMETERS:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = 
+       - bandwidth = 
+       - SVC constant = 
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = 
+       - SVC constant = 
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth =
+       - SVC constant =
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = 
+       - bandwidth = 
+       - SVC constant =
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 
+       - resolution = 
+       - SVC constant = 
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = 
+       - bandwidth = 
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = 
+       - weight = 
+       - SVC constant =
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = 
+       - mode = 'vector'
+       - SVC constant = 
+
+"""

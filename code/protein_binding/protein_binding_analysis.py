@@ -3,6 +3,7 @@ from sklearn.pipeline        import Pipeline
 from sklearn.svm             import SVC
 from sklearn.ensemble        import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
+from sklearn.kernel_approximation import RBFSampler
 import numpy as np
 import gudhi as gd
 import gudhi.representations
@@ -12,11 +13,17 @@ from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 import time
 
+start = time.time()
+
+#the whole process is repeated 250 times
+
 repetitions = 250
 
 test_score, train_score = [], []
 
-start = time.time()
+#=================================================#
+
+#Collecting the persistence diagrams constructed using the code in 'protein_binding_tda'
 
 path_file = "./datasets/"
 files_list = [
@@ -53,54 +60,22 @@ labs = [0,
     ]
 
 #0 stands for closed and 1 stands for open, the first 7 files are closed and the last 7 are open 
+#collecting all diagrams in one list
 
 dgms = [np.load(path_file + u + '.npy') for u in files_list]
 
+#=========================================================#
+
+#Classifying the persistence diagrams using different featurization methods
+
 for _ in range(repetitions):
     
-    train_labs, test_labs, train_dgms, test_dgms = train_test_split(labs, dgms) 
+    train_labs, test_labs, train_dgms, test_dgms = train_test_split(labs, dgms) #randomly splits up the data into a training and testing set
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                          #("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                         ("TDA",       gd.representations.PersistenceFisherKernel(bandwidth_fisher = 1, bandwidth = 10)),
-                         ("Estimator", SVC(kernel = "precomputed", gamma="auto"))])
-    
-    param =    [#{"Scaler__use":         [False],
-                #"TDA":                 [gd.representations.SlicedWassersteinKernel()], 
-                #"TDA__bandwidth":      [0.1, 1.0],
-                # "TDA__num_directions": [20],
-                # "Estimator":           [SVC(kernel="precomputed", gamma="auto")]},
-                
-                #{"Scaler__use":         [False],
-                # "TDA":                 [gd.representations.PersistenceWeightedGaussianKernel()], 
-                #  "TDA__bandwidth":      [0.1, 0.01],
-                # "TDA__weight":         [lambda x: np.arctan(x[1]-x[0])], 
-                #"Estimator":           [SVC(kernel="precomputed", gamma="auto")]},
-                
-                #{"Scalar__use": [False],
-                #"TDA": [gd.representations.PersistenceScaleSpaceKernel()],
-                #"Estimator": [SVC(kernel = "precomputed", gamma="auto")]},
-                
-                #{"Scalar__use" : [False],
-                # "TDA": [gd.representations.PersistenceFisherKernel()],
-                #"Estimator": [SVC(kernel = "precomputed", gamma="auto")]},
-                
-                {"Scaler__use":         [True],
-                 "TDA":                 [gd.representations.PersistenceImage()], 
-                 "TDA__resolution":     [[20, 20], [40,40] ],
-                 "TDA__bandwidth":      [0.005, 0.01, 0.1, 0.05],
-                 "Estimator":           [SVC()]},
-                
-                #{"Scaler__use":         [True],
-                #"TDA":                 [gd.representations.Landscape()], 
-                #"TDA__resolution":     [100],
-                #"Estimator":           [SVC]},
-                
-                #{"Scalar__use": [True],
-                #"TDA" : [gd.representations.Atol(quantiser=KMeans(n_clusters=2, random_state=202006))]
-                #"Estimator" : [SVC()]}
-                
-                ]
+                         ("TDA",       gd.representations.PersistenceFisherKernel(bandwidth = 0.01)), #change the featurization method here with the recommended parameters described down below
+                         ("Estimator", SVC(C=5))]) #change the constant 'C' w.r.t. the recommended parameters down below
     
     model = pipe.fit(train_dgms, train_labs)
     train_score.append(model.score(train_dgms, train_labs))
@@ -109,7 +84,61 @@ for _ in range(repetitions):
 print('Average training score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(train_score)))
 print('Average testing score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(test_score)))
 
+#======================================================#
+
+#Checking the time it took to compute everything
+
 pass 
 end = time.time()
 delta = end - start
 print("took " + str(delta) + " seconds to process")
+
+
+#========================================================#
+
+#Parameters used for the different featurization methods
+
+"""
+
+'BEST' PARAMETERS:
+    SWK: gd.representations.SlicedWassersteinKernel()
+       - num_directions = default
+       - bandwidth = default
+       - SVC constant = default
+    
+    PWGK: gd.representations.PersistenceWeightedGaussianKernel()
+       - weight = lambda x: np.arctan(x[1]-x[0])
+       - bandwidth = default
+       - SVC constant = default
+    
+    PSSK: gd.representations.PersistenceScaleSpaceKernel()
+       - bandwidth = 0.1
+       - SVC constant = 5
+    
+    PFK : gd.representations.PersistenceFisherKernel()
+       - bandwidth_fisher = default
+       - bandwidth = 0.01
+       - SVC constant = 5
+       
+    Landscape: gd.representations.Landscape()
+       - num_landscapes = 7
+       - resolution = default
+       - SVC constant = 5
+       
+    Persistence Images: gd.representations.PersistenceImage()
+       - resolution = [30,30]
+       - bandwidth = 0.01
+       - weight = lambda x: x[1]**2
+       - SVC constant = 1
+       
+    Persistence Silhouette: gd.representations.Silhouette()
+       - resolution = default
+       - weight = default
+       - SVC constant = 5
+    
+    Persistent Entropy: gd.representations.Entropy()
+       - resolution = default
+       - mode = 'vector'
+       - SVC constant = 10
+
+"""
