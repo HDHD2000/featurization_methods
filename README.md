@@ -14,5 +14,4 @@ This folder contains five other folders corresponding to each data set we are st
 Each of these folders contains python code than can be implemented to study the behaviour of these featurization methods.
 
 We decided to not include the code for finding the best parameters for each featurization method.
-We decided instead to write down as comments the parameters we found gave good (it not the best) classification results and computational time.
-The recommended parameters are found at the end of each code file.
+The parameters used for these classification tasks are instead added as comments at the end of each code file.
