@@ -17,4 +17,4 @@ We decided to not include the code for finding the best parameters for each feat
 The parameters used for these classification tasks are instead added as comments at the end of each code file.
 
 The folder 'graphical_results' contains some images which were used in the master thesis.
-These images include graphical representations of the vectorization methods, plots of persistence diagrams and illustrations of the data sets, such as the sampled points, the MNIST dataset or the orbits of the discrete dynamical system.
+These images include graphical representations of the vectorization methods, plots of persistence diagrams and illustrations of the data sets, such as the sampled points from the torus and the sphere, the MNIST dataset or the orbits of the discrete dynamical system.
