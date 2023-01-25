@@ -18,10 +18,11 @@ start = time.time()
 #EXTRACTING THE DATA SET
 
 
-data_series, labels = load_UCR_UEA_dataset(name="WordSynonyms")
+data_series, labels = load_UCR_UEA_dataset(name="GunPointAgeSpan") #change the time
+#series data set name 
 
-num_train = 267
-num_test = 638
+num_train = 135 #change the number of training and testing series following the UCR archive recommendations on their website: https://www.cs.ucr.edu/~eamonn/time_series_data_2018
+num_test = 316
 
 data_series = data_series.to_numpy()
 data_series = data_series.flatten()
@@ -33,7 +34,7 @@ num_data_series = np.shape(data_series)[0]
 dgms = []
 
 ##Computing the persistence diagrams by first creating the 
-##point clouds using the Takens embedding
+##point clouds in R^3 using the Takens embedding
 
 for j in range(num_data_series):
     data_ = data_series[j].to_numpy()
@@ -60,8 +61,8 @@ if num_train+num_test == num_data_series:
 
 pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                             ("TDA",       gd.representations.PersistenceFisherKernel()), #change the featurization methods following the recommended values below
-                             ("Estimator", SVC(kernel="precomputed", gamma="auto"))]) #change the constant 'C' following the recommendations below
+                             ("TDA",       gd.representations.PersistenceScaleSpaceKernel(bandwidth = 0.1)), #change the featurization methods following the recommended values below
+                             ("Estimator", SVC(C=10))]) #change the constant 'C' following the recommendations below
                                 # for kernel methods further add 'kernel="precomputed", gamma="auto"' in SVC()
 model = pipe.fit(train_dgms, train_labels)
 print('Training score: ' + str(model.score(train_dgms, train_labels)))
@@ -82,39 +83,39 @@ print("took " + str(delta) + " seconds to process")
 
 ADIAC:
     SWK: gd.representations.SlicedWassersteinKernel()
-       - num_directions = 
-       - bandwidth = 
-       - SVC constant = 
+       - num_directions = 20
+       - bandwidth = 0.1
+       - SVC constant = 5
     
     PWGK: gd.representations.PersistenceWeightedGaussianKernel()
        - weight = lambda x: np.arctan(x[1]-x[0])
-       - bandwidth = 
-       - SVC constant = 
+       - bandwidth = 0.01
+       - SVC constant = 10
     
     PSSK: gd.representations.PersistenceScaleSpaceKernel()
-       - bandwidth =
-       - SVC constant =
+       - bandwidth = 0.01
+       - SVC constant = 10
     
     PFK : gd.representations.PersistenceFisherKernel()
-       - bandwidth_fisher = 
-       - bandwidth = 
-       - SVC constant =
+       - bandwidth_fisher = 0.1
+       - bandwidth = 0.01
+       - SVC constant = 10
        
     Landscape: gd.representations.Landscape()
-       - num_landscapes = 
-       - resolution = 
-       - SVC constant = 
+       - num_landscapes = 10
+       - resolution = default
+       - SVC constant = 20
        
     Persistence Images: gd.representations.PersistenceImage()
-       - resolution = 
-       - bandwidth = 
+       - resolution = [30,30]
+       - bandwidth = 0.01
        - weight = lambda x: x[1]**2
-       - SVC constant = 1
+       - SVC constant = 20
        
     Persistence Silhouette: gd.representations.Silhouette()
-       - resolution = 
-       - weight = 
-       - SVC constant =
+       - resolution = default
+       - weight = default
+       - SVC constant = 20 
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -164,9 +165,9 @@ CHLORINE CONCENTRATION:
     
 COMPUTERS:
     SWK: gd.representations.SlicedWassersteinKernel()
-       - num_directions = 
-       - bandwidth = 
-       - SVC constant = 
+       - num_directions = 20
+       - bandwidth = 1
+       - SVC constant = 5
     
     PWGK: gd.representations.PersistenceWeightedGaussianKernel()
        - weight = lambda x: np.arctan(x[1]-x[0])
@@ -183,20 +184,20 @@ COMPUTERS:
        - SVC constant =
        
     Landscape: gd.representations.Landscape()
-       - num_landscapes = 
-       - resolution = 
-       - SVC constant = 
+       - num_landscapes = 7
+       - resolution = default
+       - SVC constant = 10
        
     Persistence Images: gd.representations.PersistenceImage()
-       - resolution = 
-       - bandwidth = 
+       - resolution = [30,30]
+       - bandwidth = 1
        - weight = lambda x: x[1]**2
-       - SVC constant = 1
+       - SVC constant = 10
        
     Persistence Silhouette: gd.representations.Silhouette()
-       - resolution = 
-       - weight = 
-       - SVC constant =
+       - resolution = default
+       - weight = default
+       - SVC constant = 10
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -205,39 +206,39 @@ COMPUTERS:
     
 ECGFIVEDAYS:
     SWK: gd.representations.SlicedWassersteinKernel()
-       - num_directions = 
-       - bandwidth = 
-       - SVC constant = 
+       - num_directions = 20
+       - bandwidth = default
+       - SVC constant = 10
     
     PWGK: gd.representations.PersistenceWeightedGaussianKernel()
        - weight = lambda x: np.arctan(x[1]-x[0])
-       - bandwidth = 
-       - SVC constant = 
+       - bandwidth = default
+       - SVC constant = 10 
     
     PSSK: gd.representations.PersistenceScaleSpaceKernel()
-       - bandwidth =
-       - SVC constant =
+       - bandwidth = default
+       - SVC constant = 10
     
     PFK : gd.representations.PersistenceFisherKernel()
-       - bandwidth_fisher = 
-       - bandwidth = 
-       - SVC constant =
+       - bandwidth_fisher = 0.01
+       - bandwidth = 0.1
+       - SVC constant = 10
        
     Landscape: gd.representations.Landscape()
-       - num_landscapes = 
-       - resolution = 
-       - SVC constant = 
+       - num_landscapes = default
+       - resolution = default
+       - SVC constant = 10
        
     Persistence Images: gd.representations.PersistenceImage()
-       - resolution = 
-       - bandwidth = 
+       - resolution = default
+       - bandwidth = default
        - weight = lambda x: x[1]**2
-       - SVC constant = 1
+       - SVC constant = 10
        
     Persistence Silhouette: gd.representations.Silhouette()
-       - resolution = 
-       - weight = 
-       - SVC constant =
+       - resolution = default
+       - weight = default
+       - SVC constant = 10
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -246,18 +247,18 @@ ECGFIVEDAYS:
     
 LIGHTNING7:
     SWK: gd.representations.SlicedWassersteinKernel()
-       - num_directions = 
-       - bandwidth = 
-       - SVC constant = 
+       - num_directions = 20
+       - bandwidth = default
+       - SVC constant = 10
     
     PWGK: gd.representations.PersistenceWeightedGaussianKernel()
        - weight = lambda x: np.arctan(x[1]-x[0])
-       - bandwidth = 
-       - SVC constant = 
+       - bandwidth = default
+       - SVC constant = 10
     
     PSSK: gd.representations.PersistenceScaleSpaceKernel()
-       - bandwidth =
-       - SVC constant =
+       - bandwidth = default
+       - SVC constant = 10
     
     PFK : gd.representations.PersistenceFisherKernel()
        - bandwidth_fisher = 
@@ -265,20 +266,20 @@ LIGHTNING7:
        - SVC constant =
        
     Landscape: gd.representations.Landscape()
-       - num_landscapes = 
-       - resolution = 
-       - SVC constant = 
+       - num_landscapes = 10
+       - resolution = default
+       - SVC constant = 20
        
     Persistence Images: gd.representations.PersistenceImage()
-       - resolution = 
-       - bandwidth = 
+       - resolution = default
+       - bandwidth = 1
        - weight = lambda x: x[1]**2
-       - SVC constant = 1
+       - SVC constant = 10
        
     Persistence Silhouette: gd.representations.Silhouette()
-       - resolution = 
-       - weight = 
-       - SVC constant =
+       - resolution = default
+       - weight = default
+       - SVC constant = 10
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -287,18 +288,18 @@ LIGHTNING7:
     
 SHAPELETSIM:
     SWK: gd.representations.SlicedWassersteinKernel()
-       - num_directions = 
-       - bandwidth = 
-       - SVC constant = 
+       - num_directions = 20
+       - bandwidth = 0.5
+       - SVC constant = 10
     
     PWGK: gd.representations.PersistenceWeightedGaussianKernel()
        - weight = lambda x: np.arctan(x[1]-x[0])
-       - bandwidth = 
-       - SVC constant = 
+       - bandwidth = 0.1
+       - SVC constant = 10
     
     PSSK: gd.representations.PersistenceScaleSpaceKernel()
-       - bandwidth =
-       - SVC constant =
+       - bandwidth = 0.1
+       - SVC constant = 10
     
     PFK : gd.representations.PersistenceFisherKernel()
        - bandwidth_fisher = 
@@ -306,20 +307,20 @@ SHAPELETSIM:
        - SVC constant =
        
     Landscape: gd.representations.Landscape()
-       - num_landscapes = 
-       - resolution = 
-       - SVC constant = 
+       - num_landscapes = 10
+       - resolution = default
+       - SVC constant = 10
        
     Persistence Images: gd.representations.PersistenceImage()
-       - resolution = 
-       - bandwidth = 
+       - resolution = [30,30]
+       - bandwidth = 0.01
        - weight = lambda x: x[1]**2
-       - SVC constant = 1
+       - SVC constant = 10
        
     Persistence Silhouette: gd.representations.Silhouette()
-       - resolution = 
-       - weight = 
-       - SVC constant =
+       - resolution = default
+       - weight = default
+       - SVC constant = 10
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -369,39 +370,39 @@ TRACE:
     
 CHINATOWN:
     SWK: gd.representations.SlicedWassersteinKernel()
-       - num_directions = 
-       - bandwidth = 
-       - SVC constant = 
+       - num_directions = 20
+       - bandwidth = 420000
+       - SVC constant = 10
     
     PWGK: gd.representations.PersistenceWeightedGaussianKernel()
        - weight = lambda x: np.arctan(x[1]-x[0])
-       - bandwidth = 
-       - SVC constant = 
+       - bandwidth = 100
+       - SVC constant = 10
     
     PSSK: gd.representations.PersistenceScaleSpaceKernel()
-       - bandwidth =
-       - SVC constant =
+       - bandwidth = 21
+       - SVC constant = 10
     
     PFK : gd.representations.PersistenceFisherKernel()
-       - bandwidth_fisher = 
-       - bandwidth = 
-       - SVC constant =
+       - bandwidth_fisher = 5
+       - bandwidth = 800
+       - SVC constant = 10
        
     Landscape: gd.representations.Landscape()
-       - num_landscapes = 
-       - resolution = 
-       - SVC constant = 
+       - num_landscapes = 10
+       - resolution = default
+       - SVC constant = 20
        
     Persistence Images: gd.representations.PersistenceImage()
-       - resolution = 
-       - bandwidth = 
-       - weight = lambda x: x[1]**2
-       - SVC constant = 1
+       - resolution = [40,40]
+       - bandwidth = 100
+       - weight = default
+       - SVC constant = 10
        
     Persistence Silhouette: gd.representations.Silhouette()
-       - resolution = 
-       - weight = 
-       - SVC constant =
+       - resolution = default
+       - weight = default
+       - SVC constant = 20
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 

@@ -49,8 +49,8 @@ for _ in range(repetitions):
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                      ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                     ("TDA",       gd.representations.PersistenceFisherKernel()), #change the featurization methods with values as recommended below
-                     ("Estimator", SVC(kernel="precomputed", gamma="auto"))]) #change the value 'C' following the recommendations below
+                     ("TDA",       gd.representations.PersistenceWeightedGaussianKernel(weight = lambda x: np.arctan(x[1]-x[0]), bandwidth = 0.5)), #change the featurization methods with values as recommended below
+                     ("Estimator", SVC(kernel="precomputed", gamma="auto", C=10))]) #change the value 'C' following the recommendations below
                             #further add 'kernel="precomputed", gamma="auto"' in SVC() for kernel methods
     model = pipe.fit(train_dgms, train_labs)
     train_score.append(model.score(train_dgms, train_labs))
@@ -72,44 +72,44 @@ print("took " + str(delta) + " seconds to process")
 
 'BEST' PARAMETERS:
     SWK: gd.representations.SlicedWassersteinKernel()
-       - num_directions = 
-       - bandwidth = 
-       - SVC constant = 
+       - num_directions = 20
+       - bandwidth = 0.2
+       - SVC constant = 5
     
     PWGK: gd.representations.PersistenceWeightedGaussianKernel()
        - weight = lambda x: np.arctan(x[1]-x[0])
-       - bandwidth = 
-       - SVC constant = 
+       - bandwidth = 0.5
+       - SVC constant = 10
     
     PSSK: gd.representations.PersistenceScaleSpaceKernel()
-       - bandwidth =
-       - SVC constant =
+       - bandwidth = 0.1
+       - SVC constant = 5
     
     PFK : gd.representations.PersistenceFisherKernel()
-       - bandwidth_fisher = 
-       - bandwidth = 
-       - SVC constant =
+       - bandwidth_fisher = default
+       - bandwidth = 0.1
+       - SVC constant = 5
        
     Landscape: gd.representations.Landscape()
-       - num_landscapes = 
-       - resolution = 
-       - SVC constant = 
+       - num_landscapes = 10
+       - resolution = default
+       - SVC constant = 20
        
     Persistence Images: gd.representations.PersistenceImage()
-       - resolution = 
-       - bandwidth = 
+       - resolution = [40,40]
+       - bandwidth = 0.5
        - weight = lambda x: x[1]**2
-       - SVC constant = 1
+       - SVC constant = 20
        
     Persistence Silhouette: gd.representations.Silhouette()
-       - resolution = 
-       - weight = 
-       - SVC constant =
+       - resolution = default
+       - weight = default
+       - SVC constant = 20
     
     Persistent Entropy: gd.representations.Entropy()
-       - resolution = 
+       - resolution = default
        - mode = 'vector'
-       - SVC constant = 
+       - SVC constant = 20
 
 
 """
