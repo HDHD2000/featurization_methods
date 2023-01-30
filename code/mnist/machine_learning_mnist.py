@@ -12,21 +12,18 @@ import pandas as pd
 import gudhi as gd
 import time
 
-from persistence_methods_numba import reshape_persistence_diagrams
-from persistence_methods import kernel_features
-from persistence_methods import tent_features
-from persistence_methods import carlsson_coordinates
-from persistence_methods import landscape_features
-from persistence_methods import persistence_image_features
-from persistence_methods import fast_kernel_features
-from persistence_methods_numba import numba_kernel_features_train
-from persistence_methods_numba import numba_kernel_features_test
+from persistence_methods import swk_features, landscape_features, persistence_image_features, silhouette_features, pwgk_features, pssk_features, pfk_features, entropy_features
+
+##===================================================##
+##Loading the MNIST data set using keras module
 
 start = time.time()
 
 (train_X, train_y), (test_X, test_y) = mnist.load_data()
 
+##===================================================##
 
+##function giving the four different directional sweeps of an image
 def directional_transform(img):
     z = np.array([0,1])
     z = z.reshape([1,2])
@@ -70,6 +67,8 @@ def directional_transform(img):
     imgs = [left_to_right, right_to_left, bottom_to_top, top_to_bottom]
     return imgs
 
+
+##Function computing the persistence diagrams giving the four sweeps of an image
 def compute_persistence(directional_transform):
     simplex_tree = gd.RipsComplex(directional_transform).create_simplex_tree(max_dimension = 2)
     barcode = simplex_tree.persistence()
@@ -80,6 +79,8 @@ def compute_persistence(directional_transform):
     dgms_lower = [dgms_lower_0, dgms_lower_1]
     return dgms_lower
 
+
+##appends persistence diagrams (dgms) to a list of persistence diagrams (dim_list)
 def append_dim_list(dgms, dim_list):
     jth_pt = []
     for k in range(0, len(dgms)):
@@ -97,29 +98,16 @@ def append_dim_list(dgms, dim_list):
         jth_pt.append(t)
     dim_list.append(np.array(jth_pt))
     
-#print(np.shape(np.array([0.0,0.0]).reshape((1,2))))
+##=============================================================##
 
-n=110
-label = test_y[n]
-print("label: ", label)
-imgs = directional_transform(test_X[n])
-f, axarr = plt.subplots(1,4)
-ltr = axarr[0].imshow(imgs[0])
-ltr.axes.get_xaxis().set_visible(False)
-ltr.axes.get_yaxis().set_visible(False)
-rtl = axarr[1].imshow(imgs[1])
-rtl.axes.get_xaxis().set_visible(False)
-rtl.axes.get_yaxis().set_visible(False)
-ttb = axarr[2].imshow(imgs[2])
-ttb.axes.get_xaxis().set_visible(False)
-ttb.axes.get_yaxis().set_visible(False)
-btt = axarr[3].imshow(imgs[3])
-btt.axes.get_xaxis().set_visible(False)
-btt.axes.get_yaxis().set_visible(False)
-plt.savefig('mnist_eight_sweeps.png')
+#COMPUTING persistence diagrams
 
-tuning = np.arange(0,1000)
-unused_index, tuning_index = train_test_split(tuning, test_size = .1, random_state=1)
+##Select the training and testing set
+
+num_images = 1000
+
+tuning = np.arange(0,num_images)
+tuning_index = tuning
 n = tuning_index.shape[0]
 obs = np.arange(0,n)
 zero_dim_0 = []
@@ -130,6 +118,8 @@ one_dim_0 = []
 one_dim_1 = []
 one_dim_2 = []
 one_dim_3 = []
+
+##forming the directional sweeps and the corresponding persistence diagrams
 for i in tuning_index:
     img = test_X[i]
     imgs = directional_transform(img)
@@ -148,7 +138,7 @@ for i in tuning_index:
             append_dim_list(dgms_lower[0], zero_dim_3)
             append_dim_list(dgms_lower[1], one_dim_3) 
             
-train_index, test_index, original_index_train, original_index_test, y_train, y_test = train_test_split(obs, tuning_index, test_y[tuning_index], test_size = .2, random_state=1, stratify = train_y[tuning_index])
+train_index, test_index, original_index_train, original_index_test, y_train, y_test = train_test_split(obs, tuning_index, test_y[tuning_index], test_size = .3, random_state=1, stratify = train_y[tuning_index])
 
 zero_dim_ltr_train = np.array(zero_dim_0)[train_index]
 zero_dim_rtl_train = np.array(zero_dim_1)[train_index]
@@ -173,10 +163,12 @@ one_dim_btt_test = np.array(one_dim_3)[test_index]
 
 dgms_lower = compute_persistence(imgs[0])
 
-
-""" 
-n = [10]
-r = [50,100]
+##===================================================##
+##LANDSCAPE METHOD
+ 
+"""
+n = [20]
+r = [500]
 
 train_accuracy = []
 test_accuracy = []
@@ -202,7 +194,7 @@ for i in n:
         X_train_features = np.column_stack((X_train_features_1_ltr_landscapes,X_train_features_1_rtl_landscapes,X_train_features_1_ttb_landscapes,X_train_features_1_btt_landscapes,X_train_features_0_ltr_landscapes,X_train_features_0_rtl_landscapes,X_train_features_0_btt_landscapes,X_train_features_0_ttb_landscapes))
         X_test_features = np.column_stack((X_test_features_1_ltr_landscapes,X_test_features_1_rtl_landscapes,X_test_features_1_ttb_landscapes,X_test_features_1_btt_landscapes,X_test_features_0_ltr_landscapes,X_test_features_0_rtl_landscapes,X_test_features_0_btt_landscapes,X_test_features_0_ttb_landscapes))
 
-        c = [20]
+        c = [80]
         for k in c:
             clf = SVC(kernel='rbf', C=k).fit(X_train_features, y_train)
             train_accuracy.append(clf.score(X_train_features, y_train))
@@ -222,11 +214,15 @@ landscape_results['Model Type'] = model_type
 
 landscape_sorted = landscape_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
 print(landscape_sorted[0:50])
+"""
 
-""" 
-  
+##========================================================##
+
+##PERSISTENCE IMAGE METHOD
+
+"""
 pixels = [[30,30]]
-spread = [1]
+bandwidth = [10]
 
 train_accuracy = []
 test_accuracy = []
@@ -236,21 +232,21 @@ c_model = []
 model_type = []
 
 for p in pixels:
-    for s in spread:
-        X_train_features_0_ltr_imgs, X_test_features_0_ltr_imgs = persistence_image_features(zero_dim_ltr_train, zero_dim_ltr_test, pixels=p, spread=s)
-        X_train_features_0_rtl_imgs, X_test_features_0_rtl_imgs = persistence_image_features(zero_dim_rtl_train, zero_dim_rtl_test, pixels=p, spread=s)
-        X_train_features_0_ttb_imgs, X_test_features_0_ttb_imgs = persistence_image_features(zero_dim_ttb_train, zero_dim_ttb_test, pixels=p, spread=s)
-        X_train_features_0_btt_imgs, X_test_features_0_btt_imgs = persistence_image_features(zero_dim_btt_train, zero_dim_btt_test, pixels=p, spread=s)
+    for s in bandwidth:
+        X_train_features_0_ltr_imgs, X_test_features_0_ltr_imgs = persistence_image_features(zero_dim_ltr_train, zero_dim_ltr_test, pixels=p, bandwidth=s)
+        X_train_features_0_rtl_imgs, X_test_features_0_rtl_imgs = persistence_image_features(zero_dim_rtl_train, zero_dim_rtl_test, pixels=p, bandwidth=s)
+        X_train_features_0_ttb_imgs, X_test_features_0_ttb_imgs = persistence_image_features(zero_dim_ttb_train, zero_dim_ttb_test, pixels=p, bandwidth=s)
+        X_train_features_0_btt_imgs, X_test_features_0_btt_imgs = persistence_image_features(zero_dim_btt_train, zero_dim_btt_test, pixels=p, bandwidth=s)
 
-        X_train_features_1_ltr_imgs, X_test_features_1_ltr_imgs = persistence_image_features(one_dim_ltr_train, one_dim_ltr_test, pixels=p, spread=s)
-        X_train_features_1_rtl_imgs, X_test_features_1_rtl_imgs = persistence_image_features(one_dim_rtl_train, one_dim_rtl_test, pixels=p, spread=s)
-        X_train_features_1_ttb_imgs, X_test_features_1_ttb_imgs = persistence_image_features(one_dim_ttb_train, one_dim_ttb_test, pixels=p, spread=s)
-        X_train_features_1_btt_imgs, X_test_features_1_btt_imgs = persistence_image_features(one_dim_btt_train, one_dim_btt_test, pixels=p, spread=s)
+        X_train_features_1_ltr_imgs, X_test_features_1_ltr_imgs = persistence_image_features(one_dim_ltr_train, one_dim_ltr_test, pixels=p, bandwidth=s)
+        X_train_features_1_rtl_imgs, X_test_features_1_rtl_imgs = persistence_image_features(one_dim_rtl_train, one_dim_rtl_test, pixels=p, bandwidth=s)
+        X_train_features_1_ttb_imgs, X_test_features_1_ttb_imgs = persistence_image_features(one_dim_ttb_train, one_dim_ttb_test, pixels=p, bandwidth=s)
+        X_train_features_1_btt_imgs, X_test_features_1_btt_imgs = persistence_image_features(one_dim_btt_train, one_dim_btt_test, pixels=p, bandwidth=s)
         
         X_train_features = np.column_stack((X_train_features_1_ltr_imgs,X_train_features_1_rtl_imgs,X_train_features_1_ttb_imgs,X_train_features_1_btt_imgs,X_train_features_0_ltr_imgs,X_train_features_0_rtl_imgs,X_train_features_0_btt_imgs,X_train_features_0_ttb_imgs))
         X_test_features = np.column_stack((X_test_features_1_ltr_imgs,X_test_features_1_rtl_imgs,X_test_features_1_ttb_imgs,X_test_features_1_btt_imgs,X_test_features_0_ltr_imgs,X_test_features_0_rtl_imgs,X_test_features_0_btt_imgs,X_test_features_0_ttb_imgs))
 
-        c = [20]
+        c = [50]
         for i in c:
             clf = SVC(kernel='rbf', C=i).fit(X_train_features, y_train)
             train_accuracy.append(clf.score(X_train_features, y_train))
@@ -271,45 +267,339 @@ pi_results['Model Type'] = model_type
 pi_sorted = pi_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
 print(pi_sorted[0:60])
 
-pass 
-end = time.time()
-delta = end - start
-print("took " + str(delta) + " seconds to process")
+"""
 
+##========================================================##
+
+##SLICED WASSERSTEIN KERNEL METHOD
 
 """
 
+num_directions = [10]
+bandwidth = [10000]
+
+train_accuracy = []
+test_accuracy = []
+p_model = []
+s_model = []
+c_model = []
+model_type = []
+
+for p in num_directions:
+    for s in bandwidth:
+        X_train_features_0_ltr_swk, X_test_features_0_ltr_swk = swk_features(zero_dim_ltr_train, zero_dim_ltr_test, num_direc=p, bandwidth=s)
+        X_train_features_0_rtl_swk, X_test_features_0_rtl_swk = swk_features(zero_dim_rtl_train, zero_dim_rtl_test, num_direc=p, bandwidth=s)
+        X_train_features_0_ttb_swk, X_test_features_0_ttb_swk = swk_features(zero_dim_ttb_train, zero_dim_ttb_test, num_direc=p, bandwidth=s)
+        X_train_features_0_btt_swk, X_test_features_0_btt_swk = swk_features(zero_dim_btt_train, zero_dim_btt_test, num_direc=p, bandwidth=s)
+
+        X_train_features_1_ltr_swk, X_test_features_1_ltr_swk = swk_features(one_dim_ltr_train, one_dim_ltr_test, num_direc=p, bandwidth=s)
+        X_train_features_1_rtl_swk, X_test_features_1_rtl_swk = swk_features(one_dim_rtl_train, one_dim_rtl_test, num_direc=p, bandwidth=s)
+        X_train_features_1_ttb_swk, X_test_features_1_ttb_swk = swk_features(one_dim_ttb_train, one_dim_ttb_test, num_direc=p, bandwidth=s)
+        X_train_features_1_btt_swk, X_test_features_1_btt_swk = swk_features(one_dim_btt_train, one_dim_btt_test, num_direc=p, bandwidth=s)
+        
+        X_train_features = np.column_stack((X_train_features_1_ltr_swk,X_train_features_1_rtl_swk,X_train_features_1_ttb_swk,X_train_features_1_btt_swk,X_train_features_0_ltr_swk,X_train_features_0_rtl_swk,X_train_features_0_btt_swk,X_train_features_0_ttb_swk))
+        X_test_features = np.column_stack((X_test_features_1_ltr_swk,X_test_features_1_rtl_swk,X_test_features_1_ttb_swk,X_test_features_1_btt_swk,X_test_features_0_ltr_swk,X_test_features_0_rtl_swk,X_test_features_0_btt_swk,X_test_features_0_ttb_swk))
+
+        c = [20]
+        for i in c:
+            clf = SVC(kernel='rbf', C=i).fit(X_train_features, y_train)
+            train_accuracy.append(clf.score(X_train_features, y_train))
+            test_accuracy.append(clf.score(X_test_features, y_test))
+            p_model.append(p)
+            s_model.append(s)
+            model_type.append('SVC')
+            c_model.append(i)
+            
+swk_results = pd.DataFrame()
+swk_results['Training Accuracy'] = train_accuracy
+swk_results['Test Accuracy'] = test_accuracy
+swk_results['p'] = p_model
+swk_results['s'] = s_model
+swk_results['c'] = c_model
+swk_results['Model Type'] = model_type
+
+swk_sorted = swk_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
+print(swk_sorted[0:60])
+
+"""
+##========================================================##
+##SILHOUETTE METHOD
+
+"""
+resolution = [500]
+
+train_accuracy = []
+test_accuracy = []
+r_model = []
+c_model = []
+model_type = []
+
+for j in resolution:
+    X_train_features_1_ltr_silhouettes, X_test_features_1_ltr_silhouettes = silhouette_features(one_dim_ltr_train, one_dim_ltr_test, resolution=j)
+    X_train_features_0_ltr_silhouettes, X_test_features_0_ltr_silhouettes = silhouette_features(zero_dim_ltr_train, zero_dim_ltr_test, resolution=j)
+    X_train_features_1_rtl_silhouettes, X_test_features_1_rtl_silhouettes = silhouette_features(one_dim_rtl_train, one_dim_rtl_test, resolution=j)
+    X_train_features_0_rtl_silhouettes, X_test_features_0_rtl_silhouettes = silhouette_features(zero_dim_rtl_train, zero_dim_rtl_test, resolution=j)
+
+    X_train_features_1_ttb_silhouettes, X_test_features_1_ttb_silhouettes = silhouette_features(one_dim_ttb_train, one_dim_ttb_test, resolution=j)
+    X_train_features_0_ttb_silhouettes, X_test_features_0_ttb_silhouettes = silhouette_features(zero_dim_ttb_train, zero_dim_ttb_test, resolution=j)
+
+    X_train_features_1_btt_silhouettes, X_test_features_1_btt_silhouettes = silhouette_features(one_dim_btt_train, one_dim_btt_test, resolution=j)
+    X_train_features_0_btt_silhouettes, X_test_features_0_btt_silhouettes = silhouette_features(zero_dim_btt_train, zero_dim_btt_test, resolution=j)
+        
+    X_train_features = np.column_stack((X_train_features_1_ltr_silhouettes,X_train_features_1_rtl_silhouettes,X_train_features_1_ttb_silhouettes,X_train_features_1_btt_silhouettes,X_train_features_0_ltr_silhouettes,X_train_features_0_rtl_silhouettes,X_train_features_0_btt_silhouettes,X_train_features_0_ttb_silhouettes))
+    X_test_features = np.column_stack((X_test_features_1_ltr_silhouettes,X_test_features_1_rtl_silhouettes,X_test_features_1_ttb_silhouettes,X_test_features_1_btt_silhouettes,X_test_features_0_ltr_silhouettes,X_test_features_0_rtl_silhouettes,X_test_features_0_btt_silhouettes,X_test_features_0_ttb_silhouettes))
+    c = [12]
+    for k in c:
+       clf = SVC(kernel='rbf', C=k).fit(X_train_features, y_train)
+       train_accuracy.append(clf.score(X_train_features, y_train))
+       test_accuracy.append(clf.score(X_test_features, y_test))
+       r_model.append(j)
+       model_type.append('SVC')
+       c_model.append(k)
+
+silhouette_results = pd.DataFrame()
+silhouette_results['Training Accuracy'] = train_accuracy
+silhouette_results['Test Accuracy'] = test_accuracy
+silhouette_results['r'] = r_model
+silhouette_results['c'] = c_model
+silhouette_results['Model Type'] = model_type
+
+silhouette_sorted = silhouette_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
+print(silhouette_sorted[0:50])
+
+"""
+
+##=======================================================##
+##PERSISTENCE WEIGHTED GAUSSIAN KERNEL METHOD
+
+"""
+
+bandwidth = [5]
+
+train_accuracy = []
+test_accuracy = []
+p_model = []
+s_model = []
+c_model = []
+model_type = []
+
+for s in bandwidth:
+    X_train_features_0_ltr_pwgk, X_test_features_0_ltr_pwgk = pwgk_features(zero_dim_ltr_train, zero_dim_ltr_test, bandwidth=s)
+    X_train_features_0_rtl_pwgk, X_test_features_0_rtl_pwgk = pwgk_features(zero_dim_rtl_train, zero_dim_rtl_test, bandwidth=s)
+    X_train_features_0_ttb_pwgk, X_test_features_0_ttb_pwgk = pwgk_features(zero_dim_ttb_train, zero_dim_ttb_test, bandwidth=s)
+    X_train_features_0_btt_pwgk, X_test_features_0_btt_pwgk = pwgk_features(zero_dim_btt_train, zero_dim_btt_test, bandwidth=s)
+    X_train_features_1_ltr_pwgk, X_test_features_1_ltr_pwgk = pwgk_features(one_dim_ltr_train, one_dim_ltr_test, bandwidth=s)
+    X_train_features_1_rtl_pwgk, X_test_features_1_rtl_pwgk = pwgk_features(one_dim_rtl_train, one_dim_rtl_test, bandwidth=s)
+    X_train_features_1_ttb_pwgk, X_test_features_1_ttb_pwgk = pwgk_features(one_dim_ttb_train, one_dim_ttb_test, bandwidth=s)
+    X_train_features_1_btt_pwgk, X_test_features_1_btt_pwgk = pwgk_features(one_dim_btt_train, one_dim_btt_test, bandwidth=s)
+        
+    X_train_features = np.column_stack((X_train_features_1_ltr_pwgk,X_train_features_1_rtl_pwgk,X_train_features_1_ttb_pwgk,X_train_features_1_btt_pwgk,X_train_features_0_ltr_pwgk,X_train_features_0_rtl_pwgk,X_train_features_0_btt_pwgk,X_train_features_0_ttb_pwgk))
+    X_test_features = np.column_stack((X_test_features_1_ltr_pwgk,X_test_features_1_rtl_pwgk,X_test_features_1_ttb_pwgk,X_test_features_1_btt_pwgk,X_test_features_0_ltr_pwgk,X_test_features_0_rtl_pwgk,X_test_features_0_btt_pwgk,X_test_features_0_ttb_pwgk))
+
+    c = [30]
+    for i in c:
+        clf = SVC(kernel='rbf', C=i).fit(X_train_features, y_train)
+        train_accuracy.append(clf.score(X_train_features, y_train))
+        test_accuracy.append(clf.score(X_test_features, y_test))
+        s_model.append(s)
+        model_type.append('SVC')
+        c_model.append(i)
+            
+pwgk_results = pd.DataFrame()
+pwgk_results['Training Accuracy'] = train_accuracy
+pwgk_results['Test Accuracy'] = test_accuracy
+pwgk_results['s'] = s_model
+pwgk_results['c'] = c_model
+pwgk_results['Model Type'] = model_type
+
+pwgk_sorted = pwgk_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
+print(pwgk_sorted[0:60])
+"""
+
+##========================================================##
+##PERSISTENCE SCALE SPACE KERNEL METHOD
+
+"""
+
+bandwidth = [20]
+
+train_accuracy = []
+test_accuracy = []
+p_model = []
+s_model = []
+c_model = []
+model_type = []
+
+for s in bandwidth:
+    X_train_features_0_ltr_pssk, X_test_features_0_ltr_pssk = pssk_features(zero_dim_ltr_train, zero_dim_ltr_test, bandwidth=s)
+    X_train_features_0_rtl_pssk, X_test_features_0_rtl_pssk = pssk_features(zero_dim_rtl_train, zero_dim_rtl_test, bandwidth=s)
+    X_train_features_0_ttb_pssk, X_test_features_0_ttb_pssk = pssk_features(zero_dim_ttb_train, zero_dim_ttb_test, bandwidth=s)
+    X_train_features_0_btt_pssk, X_test_features_0_btt_pssk = pssk_features(zero_dim_btt_train, zero_dim_btt_test, bandwidth=s)
+    X_train_features_1_ltr_pssk, X_test_features_1_ltr_pssk = pssk_features(one_dim_ltr_train, one_dim_ltr_test, bandwidth=s)
+    X_train_features_1_rtl_pssk, X_test_features_1_rtl_pssk = pssk_features(one_dim_rtl_train, one_dim_rtl_test, bandwidth=s)
+    X_train_features_1_ttb_pssk, X_test_features_1_ttb_pssk = pssk_features(one_dim_ttb_train, one_dim_ttb_test, bandwidth=s)
+    X_train_features_1_btt_pssk, X_test_features_1_btt_pssk = pssk_features(one_dim_btt_train, one_dim_btt_test, bandwidth=s)
+        
+    X_train_features = np.column_stack((X_train_features_1_ltr_pssk,X_train_features_1_rtl_pssk,X_train_features_1_ttb_pssk,X_train_features_1_btt_pssk,X_train_features_0_ltr_pssk,X_train_features_0_rtl_pssk,X_train_features_0_btt_pssk,X_train_features_0_ttb_pssk))
+    X_test_features = np.column_stack((X_test_features_1_ltr_pssk,X_test_features_1_rtl_pssk,X_test_features_1_ttb_pssk,X_test_features_1_btt_pssk,X_test_features_0_ltr_pssk,X_test_features_0_rtl_pssk,X_test_features_0_btt_pssk,X_test_features_0_ttb_pssk))
+
+    c = [40]
+    for i in c:
+        clf = SVC(kernel='rbf', C=i).fit(X_train_features, y_train)
+        train_accuracy.append(clf.score(X_train_features, y_train))
+        test_accuracy.append(clf.score(X_test_features, y_test))
+        s_model.append(s)
+        model_type.append('SVC')
+        c_model.append(i)
+            
+pssk_results = pd.DataFrame()
+pssk_results['Training Accuracy'] = train_accuracy
+pssk_results['Test Accuracy'] = test_accuracy
+pssk_results['s'] = s_model
+pssk_results['c'] = c_model
+pssk_results['Model Type'] = model_type
+
+pssk_sorted = pssk_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
+print(pssk_sorted[0:60])
+
+"""
+##=========================================================##
+##PERSISTENCE FISHER KERNEL METHOD
+
+band_fisher = [1]
+bandwidth = [20]
+
+train_accuracy = []
+test_accuracy = []
+bf_model = []
+b_model = []
+c_model = []
+model_type = []
+
+for j in band_fisher:
+    for s in bandwidth:
+        X_train_features_0_ltr_pfk, X_test_features_0_ltr_pfk = pfk_features(zero_dim_ltr_train, zero_dim_ltr_test, bandwidth=s, bandwidth_fisher=j)
+        X_train_features_0_rtl_pfk, X_test_features_0_rtl_pfk = pfk_features(zero_dim_rtl_train, zero_dim_rtl_test, bandwidth=s, bandwidth_fisher=j)
+        X_train_features_0_ttb_pfk, X_test_features_0_ttb_pfk = pfk_features(zero_dim_ttb_train, zero_dim_ttb_test, bandwidth=s, bandwidth_fisher=j)
+        X_train_features_0_btt_pfk, X_test_features_0_btt_pfk = pfk_features(zero_dim_btt_train, zero_dim_btt_test, bandwidth=s, bandwidth_fisher=j)
+        X_train_features_1_ltr_pfk, X_test_features_1_ltr_pfk = pfk_features(one_dim_ltr_train, one_dim_ltr_test, bandwidth=s, bandwidth_fisher=j)
+        X_train_features_1_rtl_pfk, X_test_features_1_rtl_pfk = pfk_features(one_dim_rtl_train, one_dim_rtl_test, bandwidth=s, bandwidth_fisher=j)
+        X_train_features_1_ttb_pfk, X_test_features_1_ttb_pfk = pfk_features(one_dim_ttb_train, one_dim_ttb_test, bandwidth=s, bandwidth_fisher=j)
+        X_train_features_1_btt_pfk, X_test_features_1_btt_pfk = pfk_features(one_dim_btt_train, one_dim_btt_test, bandwidth=s, bandwidth_fisher=j)
+            
+        X_train_features = np.column_stack((X_train_features_1_ltr_pfk,X_train_features_1_rtl_pfk,X_train_features_1_ttb_pfk,X_train_features_1_btt_pfk,X_train_features_0_ltr_pfk,X_train_features_0_rtl_pfk,X_train_features_0_btt_pfk,X_train_features_0_ttb_pfk))
+        X_test_features = np.column_stack((X_test_features_1_ltr_pfk,X_test_features_1_rtl_pfk,X_test_features_1_ttb_pfk,X_test_features_1_btt_pfk,X_test_features_0_ltr_pfk,X_test_features_0_rtl_pfk,X_test_features_0_btt_pfk,X_test_features_0_ttb_pfk))
+    
+        c = [40]
+        for i in c:
+            clf = SVC(kernel='rbf', C=i).fit(X_train_features, y_train)
+            train_accuracy.append(clf.score(X_train_features, y_train))
+            test_accuracy.append(clf.score(X_test_features, y_test))
+            bf_model.append(j)
+            b_model.append(s)
+            model_type.append('SVC')
+            c_model.append(i)
+            
+pfk_results = pd.DataFrame()
+pfk_results['Training Accuracy'] = train_accuracy
+pfk_results['Test Accuracy'] = test_accuracy
+pfk_results['bf'] = bf_model
+pfk_results['b'] = b_model
+pfk_results['c'] = c_model
+pfk_results['Model Type'] = model_type
+
+pfk_sorted = pfk_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
+print(pfk_sorted[0:60])
+
+##========================================================##
+##PERSISTENT ENTROPY METHOD
+
+"""
+
+resolution = [500]
+
+train_accuracy = []
+test_accuracy = []
+r_model = []
+c_model = []
+model_type = []
+
+for j in resolution:
+    X_train_features_1_ltr_entropies, X_test_features_1_ltr_entropies = entropy_features(one_dim_ltr_train, one_dim_ltr_test, resolution=j)
+    X_train_features_0_ltr_entropies, X_test_features_0_ltr_entropies = entropy_features(zero_dim_ltr_train, zero_dim_ltr_test, resolution=j)
+    X_train_features_1_rtl_entropies, X_test_features_1_rtl_entropies = entropy_features(one_dim_rtl_train, one_dim_rtl_test, resolution=j)
+    X_train_features_0_rtl_entropies, X_test_features_0_rtl_entropies = entropy_features(zero_dim_rtl_train, zero_dim_rtl_test, resolution=j)
+
+    X_train_features_1_ttb_entropies, X_test_features_1_ttb_entropies = entropy_features(one_dim_ttb_train, one_dim_ttb_test, resolution=j)
+    X_train_features_0_ttb_entropies, X_test_features_0_ttb_entropies = entropy_features(zero_dim_ttb_train, zero_dim_ttb_test, resolution=j)
+
+    X_train_features_1_btt_entropies, X_test_features_1_btt_entropies = entropy_features(one_dim_btt_train, one_dim_btt_test, resolution=j)
+    X_train_features_0_btt_entropies, X_test_features_0_btt_entropies = entropy_features(zero_dim_btt_train, zero_dim_btt_test, resolution=j)
+        
+    X_train_features = np.column_stack((X_train_features_1_ltr_entropies,X_train_features_1_rtl_entropies,X_train_features_1_ttb_entropies,X_train_features_1_btt_entropies,X_train_features_0_ltr_entropies,X_train_features_0_rtl_entropies,X_train_features_0_btt_entropies,X_train_features_0_ttb_entropies))
+    X_test_features = np.column_stack((X_test_features_1_ltr_entropies,X_test_features_1_rtl_entropies,X_test_features_1_ttb_entropies,X_test_features_1_btt_entropies,X_test_features_0_ltr_entropies,X_test_features_0_rtl_entropies,X_test_features_0_btt_entropies,X_test_features_0_ttb_entropies))
+    c = [12]
+    for k in c:
+       clf = SVC(kernel='rbf', C=k).fit(X_train_features, y_train)
+       train_accuracy.append(clf.score(X_train_features, y_train))
+       test_accuracy.append(clf.score(X_test_features, y_test))
+       r_model.append(j)
+       model_type.append('SVC')
+       c_model.append(k)
+
+entropy_results = pd.DataFrame()
+entropy_results['Training Accuracy'] = train_accuracy
+entropy_results['Test Accuracy'] = test_accuracy
+entropy_results['r'] = r_model
+entropy_results['c'] = c_model
+entropy_results['Model Type'] = model_type
+
+entropy_sorted = entropy_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
+print(entropy_sorted[0:50])
+
+"""
+
+##========================================================##
+
+##List of parameters used for the results obtained in the master thesis
+"""
+
 'BEST' PARAMETERS:
-    SWK: - num_directions = 
-       - bandwidth = 
-       - SVC constant = 
+    SWK: - num_directions = 10
+       - bandwidth = 10000
+       - SVC constant = 20
     
     PWGK: - weight = lambda x: np.arctan(x[1]-x[0])
-       - bandwidth = 
-       - SVC constant = 
+       - bandwidth = 5
+       - SVC constant = 30 
     
-    PSSK: - bandwidth = 
-       - SVC constant = 
+    PSSK: - bandwidth = 20
+       - SVC constant = 40
     
-    PFK : - bandwidth_fisher = 
-       - bandwidth = 
-       - SVC constant = 
+    PFK : - bandwidth_fisher = default
+       - bandwidth = 20
+       - SVC constant = 40 
        
-    Landscape: - num_landscapes = 10
-       - resolution = 50
-       - SVC constant = 20
+    Landscape: - num_landscapes = 20
+       - resolution = 500
+       - SVC constant = 80
        
-    Persistence Images: - resolution = 
-       - bandwidth = 
-       - weight = lambda x: x[1]**2
-       - SVC constant = 
+    Persistence Images: - resolution = [30,30]
+       - bandwidth = 10
+       - weight = default
+       - SVC constant = 30
        
-    Persistence Silhouette: - resolution = 
-       - weight = 
-       - SVC constant = 
+    Persistence Silhouette: - resolution = 500
+       - weight = default
+       - SVC constant = 12
     
     Persistent Entropy: - resolution = 
        - mode = 
        - SVC constant = 
 
 """
+
+pass 
+end = time.time()
+delta = end - start
+print("took " + str(delta) + " seconds to process")
