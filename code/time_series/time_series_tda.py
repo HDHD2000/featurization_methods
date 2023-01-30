@@ -78,8 +78,7 @@ print("took " + str(delta) + " seconds to process")
 
 #Parameters for the different time series data sets and for each featurization method
 
-"""PersistenceWeightedGaussianKernel(weight = lambda x: np.arctan(x[1]-x[0]), bandwidth = 1000)
-
+"""
 'BEST' PARAMETERS:
 
 ADIAC:
