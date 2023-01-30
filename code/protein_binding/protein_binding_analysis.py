@@ -129,7 +129,7 @@ print("took " + str(delta) + " seconds to process")
        - resolution = [30,30]
        - bandwidth = 0.01
        - weight = lambda x: x[1]**2
-       - SVC constant = 1
+       - SVC constant = default
        
     Persistence Silhouette: gd.representations.Silhouette()
        - resolution = default
