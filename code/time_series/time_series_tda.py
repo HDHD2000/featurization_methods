@@ -18,11 +18,12 @@ start = time.time()
 #EXTRACTING THE DATA SET
 
 
-data_series, labels = load_UCR_UEA_dataset(name="Trace") #change the
+data_series, labels = load_UCR_UEA_dataset(name="ShapeletSim") #change the
                                                 #time series data set name 
 
-num_train = 100 #change the number of training and testing series following the UCR archive recommendations on their website: https://www.cs.ucr.edu/~eamonn/time_series_data_2018
-num_test = 100
+
+num_train = 20 #change the number of training and testing series following the UCR archive recommendations on their website: https://www.cs.ucr.edu/~eamonn/time_series_data_2018
+num_test = 180 
 
 data_series = data_series.to_numpy()
 data_series = data_series.flatten()
@@ -61,8 +62,8 @@ if num_train+num_test == num_data_series:
 
 pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                             ("TDA",       gd.representations.PersistenceFisherKernel(bandwidth = 1, bandwidth_fisher = 1)), #change the featurization methods following the recommended values below
-                             ("Estimator", SVC(kernel="precomputed", gamma="auto", C=1000000))]) #change the constant 'C' following the recommendations below
+                             ("TDA",       gd.representations.PersistenceFisherKernel(bandwidth = 0.1, bandwidth_fisher = 1)), #change the featurization methods following the recommended values below
+                             ("Estimator", SVC(kernel="precomputed", gamma="auto", C=10))]) #change the constant 'C' following the recommendations below
                                 # for kernel methods further add 'kernel="precomputed", gamma="auto"' in SVC()
 model = pipe.fit(train_dgms, train_labels)
 print('Training score: ' + str(model.score(train_dgms, train_labels)))
@@ -166,7 +167,7 @@ CHLORINE CONCENTRATION:
 COMPUTERS:
     SWK: gd.representations.SlicedWassersteinKernel()
        - num_directions = 20
-       - bandwidth = 1
+       - bandwidth = default
        - SVC constant = 5
     
     PWGK: gd.representations.PersistenceWeightedGaussianKernel()
@@ -190,7 +191,7 @@ COMPUTERS:
        
     Persistence Images: gd.representations.PersistenceImage()
        - resolution = [30,30]
-       - bandwidth = 1
+       - bandwidth = default
        - weight = lambda x: x[1]**2
        - SVC constant = 10
        
@@ -272,7 +273,7 @@ LIGHTNING7:
        
     Persistence Images: gd.representations.PersistenceImage()
        - resolution = default
-       - bandwidth = 1
+       - bandwidth = default
        - weight = lambda x: x[1]**2
        - SVC constant = 10
        
@@ -302,9 +303,9 @@ SHAPELETSIM:
        - SVC constant = 10
     
     PFK : gd.representations.PersistenceFisherKernel()
-       - bandwidth_fisher = 
-       - bandwidth = 
-       - SVC constant =
+       - bandwidth_fisher = default
+       - bandwidth = 0.1
+       - SVC constant = 10
        
     Landscape: gd.representations.Landscape()
        - num_landscapes = 10
@@ -335,12 +336,12 @@ TRACE:
     
     PWGK: gd.representations.PersistenceWeightedGaussianKernel()
        - weight = lambda x: np.arctan(x[1]-x[0])
-       - bandwidth = 1
+       - bandwidth = default
        - SVC constant = 20
     
     PSSK: gd.representations.PersistenceScaleSpaceKernel()
        - bandwidth = 0.1
-       - SVC constant = 1
+       - SVC constant = default
     
     PFK : gd.representations.PersistenceFisherKernel()
        - bandwidth_fisher = default 
