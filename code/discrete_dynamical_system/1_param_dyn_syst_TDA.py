@@ -42,7 +42,7 @@ for _ in range(repetitions):
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                      ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
                      ("TDA",       gd.representations.PersistenceFisherKernel(bandwidth = 0.01)), #change the featurization method with the recommended values below
-                     ("Estimator", SVC(C=10))]) #change the constant 'C' following the recommendations below
+                     ("Estimator", SVC(kernel="precomputed", gamma="auto", C=10))]) #change the constant 'C' following the recommendations below
                         #for kernel methods further add 'kernel="precomputed", gamma="auto"' in SVC()
 
     model = pipe.fit(train_dgms, train_labs)
