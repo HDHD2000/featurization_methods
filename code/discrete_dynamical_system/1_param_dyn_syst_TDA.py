@@ -13,10 +13,10 @@ import time
 ##--------------------------------------##
 #Creating the data set: a family of diagrams coming from a discrete one-parameter dynamical system with varying parameter
 
-num_pts = 250              #number of iterations of the dynamical system
-num_diag_per_class = 25     #number of persistence diagrams per parameter value
+num_pts = 1000              #number of iterations of the dynamical system
+num_diag_per_class = 50     #number of persistence diagrams per parameter value
 
-repetitions = 1      #number of times the whole process is repeated
+repetitions = 10      #number of times the whole process is repeated
 
 test_score, train_score = [], []
 
