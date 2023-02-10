@@ -11,6 +11,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 import time
 import pandas as pd
+from persistence_methods import carlsson_coordinates
+from sklearn.preprocessing import scale
 
 start = time.time()
 
@@ -18,12 +20,12 @@ start = time.time()
 #EXTRACTING THE DATA SET
 
 
-data_series, labels = load_UCR_UEA_dataset(name="ShapeletSim") #change the
+data_series, labels = load_UCR_UEA_dataset(name="WordSynonyms") #change the
                                                 #time series data set name 
 
 
-num_train = 20 #change the number of training and testing series following the UCR archive recommendations on their website: https://www.cs.ucr.edu/~eamonn/time_series_data_2018
-num_test = 180 
+num_train = 267 #change the number of training and testing series following the UCR archive recommendations on their website: https://www.cs.ucr.edu/~eamonn/time_series_data_2018
+num_test = 638
 
 data_series = data_series.to_numpy()
 data_series = data_series.flatten()
@@ -49,17 +51,17 @@ for j in range(num_data_series):
 
 ##-------------------------------------------------------##
 
-#Embedding the persistence diagrams in a Hilbert space 
-# and checking their classification rates
+#choosing the training and testing diagrams
 
 train_dgms = dgms[0:num_train-1]
 train_labels = labels[0:num_train-1]
 test_dgms = dgms[num_train:]
 test_labels = labels[num_train:]
 
-if num_train+num_test == num_data_series:
-    print('ALL GOOD IN THE HOOD')
+##-----------------------------------------------------##
+##applying the featurization method and classifying using SVC
 
+"""
 pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
                              ("TDA",       gd.representations.PersistenceFisherKernel(bandwidth = 0.1, bandwidth_fisher = 1)), #change the featurization methods following the recommended values below
@@ -68,6 +70,21 @@ pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, 
 model = pipe.fit(train_dgms, train_labels)
 print('Training score: ' + str(model.score(train_dgms, train_labels)))
 print('Testing score: ' + str(model.score(test_dgms,  test_labels)))
+"""
+
+##----------------------------------------------------##
+##CODE FOR CARLSSON COORDINATES
+
+X_train_features_cc1, X_train_features_cc2, X_train_features_cc3, X_train_features_cc4, X_test_features_cc1, X_test_features_cc2, X_test_features_cc3, X_test_features_cc4 = carlsson_coordinates(train_dgms, test_dgms)
+    
+X_train_features = np.column_stack((scale(X_train_features_cc1), scale(X_train_features_cc2), scale(X_train_features_cc3), scale(X_train_features_cc4)))
+X_test_features = np.column_stack((scale(X_test_features_cc1), scale(X_test_features_cc2), scale(X_test_features_cc3), scale(X_test_features_cc4)))
+model = SVC(C=100).fit(X_train_features, train_labels)
+
+print('Training score: ' + str(model.score(X_train_features, train_labels)))
+print('Testing score: ' + str(model.score(X_test_features,  test_labels)))
+
+##----------------------------------------------------##
 
 pass 
 end = time.time()
@@ -78,7 +95,8 @@ print("took " + str(delta) + " seconds to process")
 
 #Parameters for the different time series data sets and for each featurization method
 
-"""
+"""PersistenceWeightedGaussianKernel(weight = lambda x: np.arctan(x[1]-x[0]), bandwidth = 1000)
+
 'BEST' PARAMETERS:
 
 ADIAC:
@@ -116,6 +134,8 @@ ADIAC:
        - resolution = default
        - weight = default
        - SVC constant = 20 
+    
+    Carlsson Coordinates : SVC = 100
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -158,6 +178,8 @@ CHLORINE CONCENTRATION:
        - weight = 
        - SVC constant =
     
+    Carlsson Coordinates : SVC = 100
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
        - mode = 'vector'
@@ -198,6 +220,8 @@ COMPUTERS:
        - resolution = default
        - weight = default
        - SVC constant = 10
+    
+    Carlsson Coordinates : SVC = 100
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -240,6 +264,8 @@ ECGFIVEDAYS:
        - weight = default
        - SVC constant = 10
     
+    Carlsson Coordinates : SVC = 100
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
        - mode = 'vector'
@@ -280,6 +306,8 @@ LIGHTNING7:
        - resolution = default
        - weight = default
        - SVC constant = 10
+    
+    Carlsson Coordinates : SVC = 100
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -322,6 +350,8 @@ SHAPELETSIM:
        - weight = default
        - SVC constant = 10
     
+    Carlsson Coordinates : SVC = 15
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
        - mode = 'vector'
@@ -362,6 +392,8 @@ TRACE:
        - resolution = default
        - weight = default
        - SVC constant = 10
+    
+    Carlsson Coordinates : SVC = 50
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -404,6 +436,8 @@ CHINATOWN:
        - weight = default
        - SVC constant = 20
     
+    Carlsson Coordinates : SVC = 50
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
        - mode = 'vector'
@@ -444,6 +478,8 @@ GUNPOINTAGESPAN:
        - resolution = default
        - weight = default
        - SVC constant = 20
+    
+    Carlsson Coordinates : SVC = 20
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -486,6 +522,8 @@ PIGCVP:
        - weight = default
        - SVC constant = 100
     
+    Carlsson Coordinates : SVC = 1000
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
        - mode = 'vector'
@@ -526,6 +564,8 @@ WORDSYNONYMS:
        - resolution = 1000
        - weight = default
        - SVC constant = 50
+    
+    Carlsson Coordinates : SVC = 100
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 

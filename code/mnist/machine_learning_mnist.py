@@ -12,7 +12,7 @@ import pandas as pd
 import gudhi as gd
 import time
 
-from persistence_methods import swk_features, landscape_features, persistence_image_features, silhouette_features, pwgk_features, pssk_features, pfk_features, entropy_features
+from persistence_methods import swk_features, landscape_features, persistence_image_features, silhouette_features, pwgk_features, pssk_features, pfk_features, entropy_features, carlsson_coordinates
 
 ##===================================================##
 ##Loading the MNIST data set using keras module
@@ -466,6 +466,8 @@ print(pssk_sorted[0:60])
 ##=========================================================##
 ##PERSISTENCE FISHER KERNEL METHOD
 
+"""
+
 band_fisher = [1]
 bandwidth = [20]
 
@@ -510,6 +512,8 @@ pfk_results['Model Type'] = model_type
 
 pfk_sorted = pfk_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
 print(pfk_sorted[0:60])
+
+"""
 
 ##========================================================##
 ##PERSISTENT ENTROPY METHOD
@@ -558,6 +562,42 @@ entropy_sorted = entropy_results.sort_values(by=['Test Accuracy', 'Training Accu
 print(entropy_sorted[0:50])
 
 """
+
+##=====================================================
+##CARLSSON COORDINATES
+
+X_train_features_0_ltr_cc1, X_train_features_0_ltr_cc2, X_train_features_0_ltr_cc3, X_train_features_0_ltr_cc4, X_test_features_0_ltr_cc1, X_test_features_0_ltr_cc2, X_test_features_0_ltr_cc3, X_test_features_0_ltr_cc4 = carlsson_coordinates(zero_dim_ltr_train, zero_dim_ltr_test)
+X_train_features_1_ltr_cc1, X_train_features_1_ltr_cc2, X_train_features_1_ltr_cc3, X_train_features_1_ltr_cc4, X_test_features_1_ltr_cc1, X_test_features_1_ltr_cc2, X_test_features_1_ltr_cc3, X_test_features_1_ltr_cc4 = carlsson_coordinates(one_dim_ltr_train, one_dim_ltr_test)
+X_train_features_0_rtl_cc1, X_train_features_0_rtl_cc2, X_train_features_0_rtl_cc3, X_train_features_0_rtl_cc4, X_test_features_0_rtl_cc1, X_test_features_0_rtl_cc2, X_test_features_0_rtl_cc3, X_test_features_0_rtl_cc4 = carlsson_coordinates(zero_dim_rtl_train, zero_dim_rtl_test)
+X_train_features_1_rtl_cc1, X_train_features_1_rtl_cc2, X_train_features_1_rtl_cc3, X_train_features_1_rtl_cc4, X_test_features_1_rtl_cc1, X_test_features_1_rtl_cc2, X_test_features_1_rtl_cc3, X_test_features_1_rtl_cc4 = carlsson_coordinates(one_dim_rtl_train, one_dim_rtl_test)
+X_train_features_0_btt_cc1, X_train_features_0_btt_cc2, X_train_features_0_btt_cc3, X_train_features_0_btt_cc4, X_test_features_0_btt_cc1, X_test_features_0_btt_cc2, X_test_features_0_btt_cc3, X_test_features_0_btt_cc4 = carlsson_coordinates(zero_dim_btt_train, zero_dim_btt_test)
+X_train_features_1_btt_cc1, X_train_features_1_btt_cc2, X_train_features_1_btt_cc3, X_train_features_1_btt_cc4, X_test_features_1_btt_cc1, X_test_features_1_btt_cc2, X_test_features_1_btt_cc3, X_test_features_1_btt_cc4 = carlsson_coordinates(one_dim_btt_train, one_dim_btt_test)
+X_train_features_0_ttb_cc1, X_train_features_0_ttb_cc2, X_train_features_0_ttb_cc3, X_train_features_0_ttb_cc4, X_test_features_0_ttb_cc1, X_test_features_0_ttb_cc2, X_test_features_0_ttb_cc3, X_test_features_0_ttb_cc4 = carlsson_coordinates(zero_dim_ttb_train, zero_dim_ttb_test)
+X_train_features_1_ttb_cc1, X_train_features_1_ttb_cc2, X_train_features_1_ttb_cc3, X_train_features_1_ttb_cc4, X_test_features_1_ttb_cc1, X_test_features_1_ttb_cc2, X_test_features_1_ttb_cc3, X_test_features_1_ttb_cc4 = carlsson_coordinates(one_dim_ttb_train, one_dim_ttb_test)
+
+X_train_features = np.column_stack((scale(X_train_features_0_ltr_cc1), scale(X_train_features_0_ltr_cc2),scale(X_train_features_0_ltr_cc3),scale(X_train_features_0_ltr_cc4),
+                                   scale(X_train_features_0_rtl_cc1), scale(X_train_features_0_rtl_cc2),scale(X_train_features_0_rtl_cc3),scale(X_train_features_0_rtl_cc4),
+                                   scale(X_train_features_0_ttb_cc1), scale(X_train_features_0_ttb_cc2),scale(X_train_features_0_ttb_cc3),scale(X_train_features_0_ttb_cc4),
+                                   scale(X_train_features_0_btt_cc1), scale(X_train_features_0_btt_cc2),scale(X_train_features_0_btt_cc3),scale(X_train_features_0_btt_cc4),
+                                   scale(X_train_features_1_ltr_cc1), scale(X_train_features_1_ltr_cc2),scale(X_train_features_1_ltr_cc3),scale(X_train_features_1_ltr_cc4),
+                                   scale(X_train_features_1_rtl_cc1), scale(X_train_features_1_rtl_cc2),scale(X_train_features_1_rtl_cc3),scale(X_train_features_1_rtl_cc4),
+                                   scale(X_train_features_1_ttb_cc1), scale(X_train_features_1_ttb_cc2),scale(X_train_features_1_ttb_cc3),scale(X_train_features_1_ttb_cc4),
+                                   scale(X_train_features_1_btt_cc1), scale(X_train_features_1_btt_cc2),scale(X_train_features_1_btt_cc3),scale(X_train_features_1_btt_cc4)))
+
+X_test_features = np.column_stack((scale(X_test_features_0_ltr_cc1), scale(X_test_features_0_ltr_cc2), scale(X_test_features_0_ltr_cc3), scale(X_test_features_0_ltr_cc4),
+                                  scale(X_test_features_0_rtl_cc1), scale(X_test_features_0_rtl_cc2), scale(X_test_features_0_rtl_cc3), scale(X_test_features_0_rtl_cc4),
+                                   scale(X_test_features_0_ttb_cc1), scale(X_test_features_0_ttb_cc2), scale(X_test_features_0_ttb_cc3), scale(X_test_features_0_ttb_cc4),
+                                  scale(X_test_features_0_btt_cc1), scale(X_test_features_0_btt_cc2), scale(X_test_features_0_btt_cc3), scale(X_test_features_0_btt_cc4),
+                                  scale(X_test_features_1_ltr_cc1), scale(X_test_features_1_ltr_cc2), scale(X_test_features_1_ltr_cc3), scale(X_test_features_1_ltr_cc4),
+                                  scale(X_test_features_1_rtl_cc1), scale(X_test_features_1_rtl_cc2), scale(X_test_features_1_rtl_cc3), scale(X_test_features_1_rtl_cc4),
+                                   scale(X_test_features_1_ttb_cc1), scale(X_test_features_1_ttb_cc2), scale(X_test_features_1_ttb_cc3), scale(X_test_features_1_ttb_cc4),
+                                  scale(X_test_features_1_btt_cc1), scale(X_test_features_1_btt_cc2), scale(X_test_features_1_btt_cc3), scale(X_test_features_1_btt_cc4)))
+
+clf = SVC(C=50).fit(X_train_features, y_train)
+
+print('Train/test classification accuracy with persistence functions')
+print(clf.score(X_train_features, y_train))
+print(clf.score(X_test_features, y_test))
 
 ##========================================================##
 
