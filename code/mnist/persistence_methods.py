@@ -69,6 +69,80 @@ def carlsson_coordinates(X_train, X_test):
             X_test_features_cc4[i] = 0
     return X_train_features_cc1, X_train_features_cc2, X_train_features_cc3, X_train_features_cc4, X_test_features_cc1, X_test_features_cc2, X_test_features_cc3, X_test_features_cc4
 
+def tropical_coordinates(X_train, X_test):
+    n = len(X_train)
+    X_train_tc1 = np.zeros(n)
+    X_train_tc3 = np.zeros(n)
+    X_train_tc4 = np.zeros(n)
+    X_train_tc5 = np.zeros(n)
+    X_train_tc7 = np.zeros(n)
+    for i in range(0,n):
+        m = len(X_train[i])
+        if m>0:
+            sum_max2 = 0
+            sub = np.zeros(m)
+            x = X_train[i][:,0]
+            y = X_train[i][:,1]
+            X_train_tc1[i] = max(y-x)
+            X_train_tc3[i] = sum(y-x)
+            for j in range(0,m):
+                sub[j] = min(28*(y[j] - x[j]), x[j])
+            X_train_tc7[i] = sum(sub)
+            max_sub = max(sub + y-x)
+            X_train_tc4[i] = sum(max_sub - sub)
+            for q in range(0,m):
+                if q>0:
+                    for k in range(0,q-1):
+                        sum2 = y[q] - x[q] + y[k] - x[k]
+                        if sum2>sum_max2:
+                            sum_max2 = sum2
+                    X_train_tc5[i] = sum_max2
+                else:
+                    X_train_tc5[i] = 0
+        else:
+            X_train_tc1[i] = 0
+            X_train_tc3[i] = 0
+            X_train_tc7[i] = 0
+            X_train_tc4[i] = 0
+            X_train_tc5[i] = 0
+            
+    n = len(X_test)
+    X_test_tc1 = np.zeros(n)
+    X_test_tc3 = np.zeros(n)
+    X_test_tc4 = np.zeros(n)
+    X_test_tc5 = np.zeros(n)
+    X_test_tc7 = np.zeros(n)
+    for i in range(0,n):
+        m = len(X_test[i])
+        if m>0:
+            sum_max2 = 0
+            sub = np.zeros(m)
+            x = X_test[i][:,0]
+            y = X_test[i][:,1]
+            X_test_tc1[i] = max(y-x)
+            X_test_tc3[i] = sum(y-x)
+            for j in range(0,m):
+                sub[j] = min(28*(y[j] - x[j]), x[j])
+            X_test_tc7[i] = sum(sub)
+            max_sub = max(sub + y-x)
+            X_test_tc4[i] = sum(max_sub - sub)
+            for q in range(0,m):
+                if q>0:
+                    for k in range(0,q-1):
+                        sum2 = y[q] - x[q] + y[k] - x[k]
+                        if sum2>sum_max2:
+                            sum_max2 = sum2
+                    X_test_tc5[i] = sum_max2
+                else:
+                    X_test_tc5[i] = 0
+        else:
+            X_test_tc1[i] = 0
+            X_test_tc3[i] = 0
+            X_test_tc7[i] = 0
+            X_test_tc4[i] = 0
+            X_test_tc5[i] = 0
+            
+    return X_train_tc1,X_train_tc3,X_train_tc4,X_train_tc5,X_train_tc7, X_test_tc1,X_test_tc3,X_test_tc4,X_test_tc5,X_test_tc7
 
 def persistence_image_features(X_train, X_test, pixels=[30,30], bandwidth=1):
     pim = PersistenceImage(bandwidth = bandwidth, weight = lambda x: 1, resolution = pixels)

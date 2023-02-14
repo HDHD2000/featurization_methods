@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import scale
 import time
-from persistence_methods import carlsson_coordinates
+from persistence_methods import carlsson_coordinates, tropical_coordinates
 
 start = time.time()
 
@@ -70,6 +70,8 @@ dgms = [np.load(path_file + u + '.npy') for u in files_list]
 
 #Classifying the persistence diagrams using different featurization methods
 
+"""
+
 for _ in range(repetitions):
     
     train_labs, test_labs, train_dgms, test_dgms = train_test_split(labs, dgms) #randomly splits up the data into a training and testing set
@@ -86,21 +88,26 @@ for _ in range(repetitions):
 print('Average training score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(train_score)))
 print('Average testing score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(test_score)))
 
+"""
 
 ##==========================================================##
-##CODE FOR CARLSSON COORDINATES
+##CODE FOR CARLSSON AND TROPICAL COORDINATES
 
-"""
+coordinate = 'tropical' ##'tropical' or 'carlsson' depending on the coordinates one wants to use
 
 for _ in range(repetitions):
     
     train_labs, test_labs, train_dgms, test_dgms = train_test_split(labs, dgms) #randomly splits up the data into a training and testing set
     
-    X_train_features_cc1, X_train_features_cc2, X_train_features_cc3, X_train_features_cc4, X_test_features_cc1, X_test_features_cc2, X_test_features_cc3, X_test_features_cc4 = carlsson_coordinates(train_dgms, test_dgms)
+    if coordinate == 'carlsson':
+        X_train_features = carlsson_coordinates(train_dgms)
+        X_test_features = carlsson_coordinates(test_dgms)
     
-    X_train_features = np.column_stack((scale(X_train_features_cc1), scale(X_train_features_cc2), scale(X_train_features_cc3), scale(X_train_features_cc4)))
-    X_test_features = np.column_stack((scale(X_test_features_cc1), scale(X_test_features_cc2), scale(X_test_features_cc3), scale(X_test_features_cc4)))
-    clf = SVC(C=10).fit(X_train_features, train_labs)
+    if coordinate == 'tropical':
+        X_train_features = tropical_coordinates(train_dgms)
+        X_test_features = tropical_coordinates(test_dgms)
+    
+    clf = SVC(C=100).fit(X_train_features, train_labs) ##change the constant following the recommendations below
 
     train_score.append(clf.score(X_train_features, train_labs))
     test_score.append(clf.score(X_test_features, test_labs))
@@ -108,7 +115,7 @@ for _ in range(repetitions):
 print('Average training score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(train_score)))
 print('Average testing score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(test_score)))
     
-"""
+
 #======================================================#
 
 #Checking the time it took to compute everything
@@ -160,6 +167,8 @@ print("took " + str(delta) + " seconds to process")
        - SVC constant = 5
     
     Carlsson Coordinates: SVC = 10
+    
+    Tropical Coordinates: SVC = 100
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = default

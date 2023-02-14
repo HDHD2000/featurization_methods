@@ -9,8 +9,7 @@ import gudhi.representations
 from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 import time
-from persistence_methods import carlsson_coordinates
-from sklearn.preprocessing import scale
+from persistence_methods import carlsson_coordinates, tropical_coordinates
 
 ##--------------------------------------##
 #Creating the data set: a family of diagrams coming from a discrete one-parameter dynamical system with varying parameter
@@ -27,6 +26,8 @@ start = time.time()
 ##==============================================##
 ##Construction of the data set, computation of the persistence diagrams,
 ##  application of the featurization mehod and classification using SVC
+
+"""
 
 for _ in range(repetitions):
     dgms, labs = [], []
@@ -58,12 +59,14 @@ for _ in range(repetitions):
 print('Average training score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(train_score)))
 print('Average testing score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(test_score)))
 
+"""
 
 ##===============================================================##
 
-##CODE FOR CARLSSON COORDINATES
+##CODE FOR CARLSSON AND TROPICAL COORDINATES
 
-"""
+coordinate = 'tropical' ##'tropical' or 'carlsson' depending on the coordinates one wants to use
+
 for _ in range(repetitions):
     dgms, labs = [], []
     for idx, radius in enumerate([2.5, 3.5, 4., 4.1, 4.3]): #the different parameter values are 2.5, 3.5, 4., 4.1 and 4.3
@@ -79,20 +82,23 @@ for _ in range(repetitions):
             dgm = ac.persistence()
             dgms.append(ac.persistence_intervals_in_dimension(1)) ##list of all persistence diagrams
         
-    train_labs, test_labs, train_dgms, test_dgms = train_test_split(labs, dgms)   #dividing the set of persistence diagrams into a testing and a training set
+    train_labs, test_labs, train_dgms, test_dgms = train_test_split(labs, dgms) #randomly splits up the data into a training and testing set
     
-    X_train_features_cc1, X_train_features_cc2, X_train_features_cc3, X_train_features_cc4, X_test_features_cc1, X_test_features_cc2, X_test_features_cc3, X_test_features_cc4 = carlsson_coordinates(train_dgms, test_dgms)
+    if coordinate == 'carlsson':
+        X_train_features = carlsson_coordinates(train_dgms)
+        X_test_features = carlsson_coordinates(test_dgms)
     
-    X_train_features = np.column_stack((scale(X_train_features_cc1), scale(X_train_features_cc2), scale(X_train_features_cc3), scale(X_train_features_cc4)))
-    X_test_features = np.column_stack((scale(X_test_features_cc1), scale(X_test_features_cc2), scale(X_test_features_cc3), scale(X_test_features_cc4)))
-    clf = SVC(C=40).fit(X_train_features, train_labs)
+    if coordinate == 'tropical':
+        X_train_features = tropical_coordinates(train_dgms)
+        X_test_features = tropical_coordinates(test_dgms)  
+        
+    clf = SVC(C=20).fit(X_train_features, train_labs)
 
     train_score.append(clf.score(X_train_features, train_labs))
     test_score.append(clf.score(X_test_features, test_labs))
 
 print('Average training score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(train_score)))
 print('Average testing score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(test_score)))
-""" 
    
 ##================================================================##
 
@@ -144,6 +150,8 @@ print("took " + str(delta) + " seconds to process")
        - SVC constant = 10
     
     Carlsson Coordinates: SVC = 40
+    
+    Tropical Coordinates: SVC = 20
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = default

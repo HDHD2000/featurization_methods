@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 import time
 import pandas as pd
-from persistence_methods import carlsson_coordinates
+from persistence_methods import carlsson_coordinates, tropical_coordinates
 from sklearn.preprocessing import scale
 
 start = time.time()
@@ -20,12 +20,12 @@ start = time.time()
 #EXTRACTING THE DATA SET
 
 
-data_series, labels = load_UCR_UEA_dataset(name="WordSynonyms") #change the
-                                                #time series data set name 
+data_series, labels = load_UCR_UEA_dataset(name="Adiac") #change the
+#time series data set name following the names in the table of my thesis
 
 
-num_train = 267 #change the number of training and testing series following the UCR archive recommendations on their website: https://www.cs.ucr.edu/~eamonn/time_series_data_2018
-num_test = 638
+num_train = 390 #change the number of training and testing series following the UCR archive recommendations on their website: https://www.cs.ucr.edu/~eamonn/time_series_data_2018
+num_test = 391
 
 data_series = data_series.to_numpy()
 data_series = data_series.flatten()
@@ -59,9 +59,10 @@ test_dgms = dgms[num_train:]
 test_labels = labels[num_train:]
 
 ##-----------------------------------------------------##
-##applying the featurization method and classifying using SVC
+##CODE FOR PL, PI, SILHOUETTE, SWK, PSSK, PFK, PWGK
+##applying the featurization methods and classifying using SVC
 
-"""
+
 pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
                              ("TDA",       gd.representations.PersistenceFisherKernel(bandwidth = 0.1, bandwidth_fisher = 1)), #change the featurization methods following the recommended values below
@@ -70,19 +71,29 @@ pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, 
 model = pipe.fit(train_dgms, train_labels)
 print('Training score: ' + str(model.score(train_dgms, train_labels)))
 print('Testing score: ' + str(model.score(test_dgms,  test_labels)))
-"""
+
 
 ##----------------------------------------------------##
-##CODE FOR CARLSSON COORDINATES
+##CODE FOR CARLSSON AND TROPICAL COORDINATES
+ 
+"""
 
-X_train_features_cc1, X_train_features_cc2, X_train_features_cc3, X_train_features_cc4, X_test_features_cc1, X_test_features_cc2, X_test_features_cc3, X_test_features_cc4 = carlsson_coordinates(train_dgms, test_dgms)
+coordinate = 'tropical' ##'tropical' or 'carlsson' depending on the coordinates one wants to use
+
+if coordinate == 'carlsson':
+    X_train_features = carlsson_coordinates(train_dgms)
+    X_test_features = carlsson_coordinates(test_dgms)
     
-X_train_features = np.column_stack((scale(X_train_features_cc1), scale(X_train_features_cc2), scale(X_train_features_cc3), scale(X_train_features_cc4)))
-X_test_features = np.column_stack((scale(X_test_features_cc1), scale(X_test_features_cc2), scale(X_test_features_cc3), scale(X_test_features_cc4)))
-model = SVC(C=100).fit(X_train_features, train_labels)
+if coordinate == 'tropical':
+    X_train_features = tropical_coordinates(train_dgms)
+    X_test_features = tropical_coordinates(test_dgms)
+    
+model = SVC(C=120).fit(X_train_features, train_labels)
 
 print('Training score: ' + str(model.score(X_train_features, train_labels)))
 print('Testing score: ' + str(model.score(X_test_features,  test_labels)))
+
+"""
 
 ##----------------------------------------------------##
 
@@ -137,6 +148,8 @@ ADIAC:
     
     Carlsson Coordinates : SVC = 100
     
+    Tropical Coordinates : SVC = 100
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
        - mode = 'vector'
@@ -179,6 +192,8 @@ CHLORINE CONCENTRATION:
        - SVC constant =
     
     Carlsson Coordinates : SVC = 100
+    
+    Tropical Coordinates : SVC = 100
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -223,6 +238,8 @@ COMPUTERS:
     
     Carlsson Coordinates : SVC = 100
     
+    Tropical Coordinates : SVC = 100
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
        - mode = 'vector'
@@ -265,6 +282,8 @@ ECGFIVEDAYS:
        - SVC constant = 10
     
     Carlsson Coordinates : SVC = 100
+    
+    Tropical Coordinates : SVC = 100
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -309,6 +328,8 @@ LIGHTNING7:
     
     Carlsson Coordinates : SVC = 100
     
+    Tropical Coordinates : SVC = 10
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
        - mode = 'vector'
@@ -351,6 +372,10 @@ SHAPELETSIM:
        - SVC constant = 10
     
     Carlsson Coordinates : SVC = 15
+    
+    Tropical Coordinates : 
+       - SVC = 0.5
+       - scaled = yes
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -395,6 +420,10 @@ TRACE:
     
     Carlsson Coordinates : SVC = 50
     
+    Tropical Coordinates : 
+       - SVC = 20
+       - scaled = yes
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
        - mode = 'vector'
@@ -437,6 +466,10 @@ CHINATOWN:
        - SVC constant = 20
     
     Carlsson Coordinates : SVC = 50
+    
+    Tropical Coordinates : 
+       - SVC = 2
+       - scaled = yes
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
@@ -481,6 +514,10 @@ GUNPOINTAGESPAN:
     
     Carlsson Coordinates : SVC = 20
     
+    Tropical Coordinates : 
+       - SVC = 100
+       - scaled = yes
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
        - mode = 'vector'
@@ -524,6 +561,10 @@ PIGCVP:
     
     Carlsson Coordinates : SVC = 1000
     
+    Tropical Coordinates : 
+       - SVC = 
+       - scaled = yes
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
        - mode = 'vector'
@@ -565,7 +606,13 @@ WORDSYNONYMS:
        - weight = default
        - SVC constant = 50
     
-    Carlsson Coordinates : SVC = 100
+    Carlsson Coordinates : 
+       - SVC = 100
+       - scaled = yes
+    
+    Tropical Coordinates : 
+       - SVC = 100
+       - scaled = yes
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 
