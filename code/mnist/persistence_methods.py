@@ -189,7 +189,7 @@ def pfk_features(X_train, X_test, bandwidth = 1, bandwidth_fisher = 1):
     return X_train_features, X_test_features   
 
 def entropy_features(X_train, X_test, resolution = 100):
-    entropy = Entropy(mode = 'vector', resolution = resolution)
+    entropy = Entropy(mode = 'vector', resolution = resolution, normalized = False)
     entr = entropy.fit(X_train)
     X_train_features = entr.transform(X_train)
     X_test_features = entr.transform(X_test)

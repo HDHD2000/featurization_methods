@@ -518,9 +518,8 @@ print(pfk_sorted[0:60])
 ##========================================================##
 ##PERSISTENT ENTROPY METHOD
 
-"""
 
-resolution = [500]
+resolution = [200]
 
 train_accuracy = []
 test_accuracy = []
@@ -542,7 +541,7 @@ for j in resolution:
         
     X_train_features = np.column_stack((X_train_features_1_ltr_entropies,X_train_features_1_rtl_entropies,X_train_features_1_ttb_entropies,X_train_features_1_btt_entropies,X_train_features_0_ltr_entropies,X_train_features_0_rtl_entropies,X_train_features_0_btt_entropies,X_train_features_0_ttb_entropies))
     X_test_features = np.column_stack((X_test_features_1_ltr_entropies,X_test_features_1_rtl_entropies,X_test_features_1_ttb_entropies,X_test_features_1_btt_entropies,X_test_features_0_ltr_entropies,X_test_features_0_rtl_entropies,X_test_features_0_btt_entropies,X_test_features_0_ttb_entropies))
-    c = [12]
+    c = [40]
     for k in c:
        clf = SVC(kernel='rbf', C=k).fit(X_train_features, y_train)
        train_accuracy.append(clf.score(X_train_features, y_train))
@@ -561,7 +560,6 @@ entropy_results['Model Type'] = model_type
 entropy_sorted = entropy_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
 print(entropy_sorted[0:50])
 
-"""
 
 ##=====================================================##
 ##CARLSSON COORDINATES
@@ -606,6 +604,8 @@ print(clf.score(X_test_features, y_test))
 ##========================================================##
 ##TROPICAL COORDINATES
 
+"""
+
 X_train_0_ltr_tc1, X_train_0_ltr_tc3, X_train_0_ltr_tc4, X_train_0_ltr_tc5, X_train_0_ltr_tc7, X_test_0_ltr_tc1, X_test_0_ltr_tc3, X_test_0_ltr_tc4, X_test_0_ltr_tc5, X_test_0_ltr_tc7 = tropical_coordinates(zero_dim_ltr_train, zero_dim_ltr_test)
 X_train_1_ltr_tc1, X_train_1_ltr_tc3, X_train_1_ltr_tc4, X_train_1_ltr_tc5, X_train_1_ltr_tc7, X_test_1_ltr_tc1,X_test_1_ltr_tc3, X_test_1_ltr_tc4, X_test_1_ltr_tc5,  X_test_1_ltr_tc7 = tropical_coordinates(one_dim_ltr_train, one_dim_ltr_test)
 X_train_0_rtl_tc1, X_train_0_rtl_tc3, X_train_0_rtl_tc4, X_train_0_rtl_tc5, X_train_0_rtl_tc7, X_test_0_rtl_tc1,  X_test_0_rtl_tc3, X_test_0_rtl_tc4, X_test_0_rtl_tc5, X_test_0_rtl_tc7 = tropical_coordinates(zero_dim_rtl_train, zero_dim_rtl_test)
@@ -638,6 +638,8 @@ clf = SVC(C=10).fit(X_train_features, y_train)
 print('Train/test classification accuracy with persistence functions')
 print(clf.score(X_train_features, y_train))
 print(clf.score(X_test_features, y_test))
+
+"""
 
 ##========================================================##
 
@@ -675,11 +677,12 @@ print(clf.score(X_test_features, y_test))
     
     Carlsson Coordinates: SVC = 50
     
-    Tropical Coordinates: SVC = 
+    Tropical Coordinates: SVC = 10
     
-    Persistent Entropy: - resolution = 
-       - mode = 
-       - SVC constant = 
+    Persistent Entropy: - resolution = 200
+       - mode = vector
+       - SVC constant =  40
+       - normalized = False
 
 """
 

@@ -27,7 +27,6 @@ start = time.time()
 ##Construction of the data set, computation of the persistence diagrams,
 ##  application of the featurization mehod and classification using SVC
 
-"""
 
 for _ in range(repetitions):
     dgms, labs = [], []
@@ -48,7 +47,7 @@ for _ in range(repetitions):
     
     pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                      ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
-                     ("TDA",       gd.representations.PersistenceFisherKernel(bandwidth = 0.01)), #change the featurization method with the recommended values below
+                     ("TDA",       gd.representations.Entropy(mode = 'vector', normalized = False, resolution = 200)), #change the featurization method with the recommended values below
                      ("Estimator", SVC(C=10))]) #change the constant 'C' following the recommendations below
                         #for kernel methods further add 'kernel="precomputed", gamma="auto"' in SVC()
 
@@ -59,11 +58,12 @@ for _ in range(repetitions):
 print('Average training score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(train_score)))
 print('Average testing score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(test_score)))
 
-"""
 
 ##===============================================================##
 
 ##CODE FOR CARLSSON AND TROPICAL COORDINATES
+
+"""
 
 coordinate = 'tropical' ##'tropical' or 'carlsson' depending on the coordinates one wants to use
 
@@ -99,6 +99,8 @@ for _ in range(repetitions):
 
 print('Average training score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(train_score)))
 print('Average testing score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(test_score)))
+
+"""
    
 ##================================================================##
 
@@ -154,8 +156,9 @@ print("took " + str(delta) + " seconds to process")
     Tropical Coordinates: SVC = 20
     
     Persistent Entropy: gd.representations.Entropy()
-       - resolution = default
+       - resolution = 200
        - mode = 'vector'
+       - normalized = False
        - SVC constant = 10
 
 """
