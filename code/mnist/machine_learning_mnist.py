@@ -12,7 +12,7 @@ import pandas as pd
 import gudhi as gd
 import time
 
-from persistence_methods import swk_features, landscape_features, persistence_image_features, silhouette_features, pwgk_features, pssk_features, pfk_features, entropy_features, carlsson_coordinates, tropical_coordinates
+from persistence_methods import swk_features, landscape_features, persistence_image_features, silhouette_features, pwgk_features, pssk_features, pfk_features, entropy_features, carlsson_coordinates, tropical_coordinates, signature_features
 
 ##===================================================##
 ##Loading the MNIST data set using keras module
@@ -518,6 +518,7 @@ print(pfk_sorted[0:60])
 ##========================================================##
 ##PERSISTENT ENTROPY METHOD
 
+"""
 
 resolution = [200]
 
@@ -560,6 +561,7 @@ entropy_results['Model Type'] = model_type
 entropy_sorted = entropy_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
 print(entropy_sorted[0:50])
 
+"""
 
 ##=====================================================##
 ##CARLSSON COORDINATES
@@ -640,6 +642,50 @@ print(clf.score(X_train_features, y_train))
 print(clf.score(X_test_features, y_test))
 
 """
+##==========================================================##
+##TOPOLOGICAL SIGNATURES
+
+dimensions = [5]
+
+train_accuracy = []
+test_accuracy = []
+r_model = []
+c_model = []
+model_type = []
+
+for j in dimensions:
+    X_train_features_1_ltr_signature, X_test_features_1_ltr_signature = signature_features(one_dim_ltr_train, one_dim_ltr_test, dim_trunc=j)
+    X_train_features_0_ltr_signature, X_test_features_0_ltr_signature = signature_features(zero_dim_ltr_train, zero_dim_ltr_test, dim_trunc=j)
+    X_train_features_1_rtl_signature, X_test_features_1_rtl_signature = signature_features(one_dim_rtl_train, one_dim_rtl_test, dim_trunc=j)
+    X_train_features_0_rtl_signature, X_test_features_0_rtl_signature = signature_features(zero_dim_rtl_train, zero_dim_rtl_test, dim_trunc=j)
+
+    X_train_features_1_ttb_signature, X_test_features_1_ttb_signature = signature_features(one_dim_ttb_train, one_dim_ttb_test, dim_trunc=j)
+    X_train_features_0_ttb_signature, X_test_features_0_ttb_signature = signature_features(zero_dim_ttb_train, zero_dim_ttb_test, dim_trunc=j)
+
+    X_train_features_1_btt_signature, X_test_features_1_btt_signature = signature_features(one_dim_btt_train, one_dim_btt_test, dim_trunc=j)
+    X_train_features_0_btt_signature, X_test_features_0_btt_signature = signature_features(zero_dim_btt_train, zero_dim_btt_test, dim_trunc=j)
+        
+    X_train_features = np.column_stack((X_train_features_1_ltr_signature,X_train_features_1_rtl_signature,X_train_features_1_ttb_signature,X_train_features_1_btt_signature,X_train_features_0_ltr_signature,X_train_features_0_rtl_signature,X_train_features_0_btt_signature,X_train_features_0_ttb_signature))
+    X_test_features = np.column_stack((X_test_features_1_ltr_signature,X_test_features_1_rtl_signature,X_test_features_1_ttb_signature,X_test_features_1_btt_signature,X_test_features_0_ltr_signature,X_test_features_0_rtl_signature,X_test_features_0_btt_signature,X_test_features_0_ttb_signature))
+    c = [40]
+    for k in c:
+       clf = SVC(kernel='rbf', C=k).fit(X_train_features, y_train)
+       train_accuracy.append(clf.score(X_train_features, y_train))
+       test_accuracy.append(clf.score(X_test_features, y_test))
+       r_model.append(j)
+       model_type.append('SVC')
+       c_model.append(k)
+
+signature_results = pd.DataFrame()
+signature_results['Training Accuracy'] = train_accuracy
+signature_results['Test Accuracy'] = test_accuracy
+signature_results['r'] = r_model
+signature_results['c'] = c_model
+signature_results['Model Type'] = model_type
+
+signature_sorted = signature_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
+print(signature_sorted[0:50])
+
 
 ##========================================================##
 
@@ -678,6 +724,10 @@ print(clf.score(X_test_features, y_test))
     Carlsson Coordinates: SVC = 50
     
     Tropical Coordinates: SVC = 10
+    
+    Topological Signature: 
+       - SVC = 40
+       - truncation dimension = 5
     
     Persistent Entropy: - resolution = 200
        - mode = vector

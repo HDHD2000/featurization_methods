@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 import time
 import pandas as pd
-from persistence_methods import carlsson_coordinates, tropical_coordinates
+from persistence_methods import carlsson_coordinates, tropical_coordinates, top_sign
 from sklearn.preprocessing import scale
 
 start = time.time()
@@ -62,6 +62,7 @@ test_labels = labels[num_train:]
 ##CODE FOR PL, PI, SILHOUETTE, SWK, PSSK, PFK, PWGK
 ##applying the featurization methods and classifying using SVC
 
+"""
 
 pipe = Pipeline([("Separator", gd.representations.DiagramSelector(limit=np.inf, point_type="finite")),
                              ("Scaler",    gd.representations.DiagramScaler(scalers=[([0,1], MinMaxScaler())])),
@@ -72,13 +73,13 @@ model = pipe.fit(train_dgms, train_labels)
 print('Training score: ' + str(model.score(train_dgms, train_labels)))
 print('Testing score: ' + str(model.score(test_dgms,  test_labels)))
 
+"""
 
 ##----------------------------------------------------##
 ##CODE FOR CARLSSON AND TROPICAL COORDINATES
 
-"""
 
-coordinate = 'tropical' ##'tropical' or 'carlsson' depending on the coordinates one wants to use
+coordinate = 'signature' ##'tropical', 'signature' or 'carlsson' depending on the coordinates one wants to use
 
 if coordinate == 'carlsson':
     X_train_features = carlsson_coordinates(train_dgms)
@@ -87,13 +88,17 @@ if coordinate == 'carlsson':
 if coordinate == 'tropical':
     X_train_features = tropical_coordinates(train_dgms)
     X_test_features = tropical_coordinates(test_dgms)
-    
-model = SVC(C=100).fit(X_train_features, train_labels)
+
+if coordinate == 'signature':
+    X_train_features = top_sign(train_dgms, dim_trunc=10)
+    X_test_features = top_sign(test_dgms,dim_trunc=10)    
+        
+model = SVC(C=50).fit(X_train_features, train_labels)
 
 print('Training score: ' + str(model.score(X_train_features, train_labels)))
 print('Testing score: ' + str(model.score(X_test_features,  test_labels)))
 
-"""
+
 ##----------------------------------------------------##
 
 pass 
@@ -105,7 +110,7 @@ print("took " + str(delta) + " seconds to process")
 
 #Parameters for the different time series data sets and for each featurization method
 
-"""PersistenceWeightedGaussianKernel(weight = lambda x: np.arctan(x[1]-x[0]), bandwidth = 1000)
+"""
 
 'BEST' PARAMETERS:
 
@@ -152,6 +157,10 @@ ADIAC:
     Tropical Coordinates : 
        - SVC = 100
        - scaled = yes
+    
+    Topological Signature :
+       - SVC = 100
+       - dim_trunc = 10
        
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 200
@@ -203,6 +212,10 @@ CHLORINE CONCENTRATION:
        - SVC = 100
        - scaled = yes
     
+    Topological Signature :
+       - SVC = 100
+       - dim_trunc = 5
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 200
        - mode = 'vector'
@@ -252,6 +265,10 @@ COMPUTERS:
     Tropical Coordinates : 
        - SVC = 100
        - scaled = yes
+    
+    Topological Signature :
+       - SVC = 100
+       - dim_trunc = 5
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 200
@@ -303,6 +320,10 @@ ECGFIVEDAYS:
        - SVC = 100
        - scaled = yes
     
+    Topological Signature :
+       - SVC = 100
+       - dim_trunc = 10
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 200
        - mode = 'vector'
@@ -352,6 +373,14 @@ LIGHTNING7:
     Tropical Coordinates : 
        - SVC = 10
        - scaled = yes
+       
+    Topological Signature: 
+       - SVC = 100
+       - truncation dimension = 10
+    
+    Topological Signature :
+       - SVC = 100
+       - dim_trunc = 10
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 200
@@ -402,6 +431,10 @@ SHAPELETSIM:
     Tropical Coordinates : 
        - SVC = 0.5
        - scaled = yes
+       
+    Topological Signature :
+       - SVC = 50
+       - dim_trunc = 5
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 200
@@ -453,6 +486,10 @@ TRACE:
        - SVC = 20
        - scaled = yes
     
+    Topological Signature :
+       - SVC = 100
+       - dim_trunc = 5    
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 200
        - mode = 'vector'
@@ -502,6 +539,10 @@ CHINATOWN:
     Tropical Coordinates : 
        - SVC = 2
        - scaled = yes
+    
+    Topological Signature :
+       - SVC = 100
+       - dim_trunc = 3 
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 200
@@ -553,6 +594,10 @@ GUNPOINTAGESPAN:
        - SVC = 100
        - scaled = yes
     
+    Topological Signature :
+       - SVC = 500
+       - dim_trunc = 4
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 200
        - mode = 'vector'
@@ -603,6 +648,10 @@ PIGCVP:
        - SVC = 100
        - scaled = yes
     
+    Topological Signature :
+       - SVC = 
+       - dim_trunc = 
+    
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 100000
        - mode = 'vector'
@@ -652,6 +701,10 @@ WORDSYNONYMS:
     Tropical Coordinates : 
        - SVC = 100
        - scaled = yes
+    
+    Topological Signature :
+       - SVC = 50
+       - dim_trunc = 10 
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 200

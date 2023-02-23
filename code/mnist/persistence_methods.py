@@ -194,3 +194,35 @@ def entropy_features(X_train, X_test, resolution = 100):
     X_train_features = entr.transform(X_train)
     X_test_features = entr.transform(X_test)
     return X_train_features, X_test_features 
+
+
+def sup_dist(x,y):
+    return max(abs(x[0] - y[0]), abs(x[1] - y[1]))
+
+def dist_to_diag(x):
+    return (x[1] - x[0])/2
+
+def top_sign(X, dim_trunc):
+    n = len(X)
+    sign = np.zeros((n, dim_trunc))
+    for i in range(0,n):
+        m = len(X[i])
+        if m > 0:
+            if m**2 < dim_trunc:
+                inter = np.zeros(dim_trunc)
+            else:
+                inter = np.zeros(m**2)
+            s = 0
+            for j in range(0,m):
+                for k in range(0,m):
+                    if j!=k:
+                        inter[s] = min(sup_dist(X[i][k,:], X[i][j,:]), dist_to_diag(X[i][k,:]), dist_to_diag(X[i][j,:]))
+                    else:
+                        inter[s] = dist_to_diag(X[i][k,:])
+                    s = s + 1
+            inter[::-1].sort()
+            sign[i,:] = inter[:dim_trunc]        
+    return sign
+
+def signature_features(X_train, X_test, dim_trunc):
+    return top_sign(X_train, dim_trunc = dim_trunc), top_sign(X_test, dim_trunc = dim_trunc)

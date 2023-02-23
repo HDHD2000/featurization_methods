@@ -11,7 +11,7 @@ from gudhi.datasets.generators import points
 from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 import time
-from persistence_methods import carlsson_coordinates, tropical_coordinates
+from persistence_methods import carlsson_coordinates, tropical_coordinates, top_sign
 from sklearn.preprocessing import scale
 
 ##============================================##
@@ -73,7 +73,7 @@ print('Average testing score after ' + str(repetitions) + ' repetitions: ' + str
 ##CODE FOR CARLSSON AND TROPICAL COORDINATES
 
 
-coordinate = 'tropical' ##'tropical' or 'carlsson' depending on the coordinates one wants to use
+coordinate = 'signature' ##'tropical', 'signature' or 'carlsson' depending on the coordinates one wants to use
 
 for _ in range(repetitions):
     dgms, labs = [], []
@@ -102,8 +102,12 @@ for _ in range(repetitions):
     if coordinate == 'tropical':
         X_train_features = tropical_coordinates(train_dgms)
         X_test_features = tropical_coordinates(test_dgms)
-        
-    clf = SVC(C=100).fit(X_train_features, train_labs)
+    
+    if coordinate == 'signature':
+        X_train_features = top_sign(train_dgms, dim_trunc=5)
+        X_test_features = top_sign(test_dgms,dim_trunc=5)    
+    
+    clf = SVC(C=50).fit(X_train_features, train_labs)
 
     train_score.append(clf.score(X_train_features, train_labs))
     test_score.append(clf.score(X_test_features, test_labs))
@@ -165,6 +169,10 @@ print("took " + str(delta) + " seconds to process")
     Carlsson Coordinates: SVC = 10
     
     Tropical Coordinates: SVC = 100
+    
+    Topological Signature: 
+       - SVC = 50
+       - truncation dimension = 5
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = default

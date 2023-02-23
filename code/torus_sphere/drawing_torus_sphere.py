@@ -55,7 +55,6 @@ AlphaTorus = gd.AlphaComplex(points = torus_points).create_simplex_tree()
 dgmSphere = AlphaSphere.persistence()
 dgmTorus = AlphaTorus.persistence()
 
-
 #Plotting their persistence diagrams
 gd.plot_persistence_diagram(dgmSphere)
 plt.show()
@@ -123,3 +122,6 @@ plt.show()
 plt.plot(PETorus[0][:100])
 plt.title("Entropy Torus")
 plt.show()
+
+
+

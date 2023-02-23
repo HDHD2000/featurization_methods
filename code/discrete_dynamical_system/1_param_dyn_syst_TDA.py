@@ -9,7 +9,7 @@ import gudhi.representations
 from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 import time
-from persistence_methods import carlsson_coordinates, tropical_coordinates
+from persistence_methods import carlsson_coordinates, tropical_coordinates, top_sign
 
 ##--------------------------------------##
 #Creating the data set: a family of diagrams coming from a discrete one-parameter dynamical system with varying parameter
@@ -27,6 +27,7 @@ start = time.time()
 ##Construction of the data set, computation of the persistence diagrams,
 ##  application of the featurization mehod and classification using SVC
 
+"""
 
 for _ in range(repetitions):
     dgms, labs = [], []
@@ -58,14 +59,15 @@ for _ in range(repetitions):
 print('Average training score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(train_score)))
 print('Average testing score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(test_score)))
 
+"""
 
 ##===============================================================##
 
 ##CODE FOR CARLSSON AND TROPICAL COORDINATES
 
-"""
 
-coordinate = 'tropical' ##'tropical' or 'carlsson' depending on the coordinates one wants to use
+
+coordinate = 'signature' ##'tropical', 'signature' or 'carlsson' depending on the coordinates one wants to use
 
 for _ in range(repetitions):
     dgms, labs = [], []
@@ -92,6 +94,10 @@ for _ in range(repetitions):
         X_train_features = tropical_coordinates(train_dgms)
         X_test_features = tropical_coordinates(test_dgms)  
         
+    if coordinate == 'signature':
+        X_train_features = top_sign(train_dgms,dim_trunc=3)
+        X_test_features = top_sign(test_dgms,dim_trunc=3)
+        
     clf = SVC(C=20).fit(X_train_features, train_labs)
 
     train_score.append(clf.score(X_train_features, train_labs))
@@ -100,7 +106,6 @@ for _ in range(repetitions):
 print('Average training score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(train_score)))
 print('Average testing score after ' + str(repetitions) + ' repetitions: ' + str(np.mean(test_score)))
 
-"""
    
 ##================================================================##
 
@@ -154,6 +159,10 @@ print("took " + str(delta) + " seconds to process")
     Carlsson Coordinates: SVC = 40
     
     Tropical Coordinates: SVC = 20
+    
+    Topological Signature: 
+       - SVC = 20
+       - truncated dimension = 3
     
     Persistent Entropy: gd.representations.Entropy()
        - resolution = 200
