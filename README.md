@@ -4,7 +4,7 @@ This repository contains the code used in the comparison of featurization method
 These data sets are the ones studied in the master thesis and include sampled points from the torus and the sphere, orbits of a discrete dynamical system, forms of a protein-binding molecule, the MNIST dataset and time series datasets from the UCR archive.
 For each data set, we compare eleven different featurization methods: four kernel methods and seven vectorization methods.
 The four kernel methods used here are: the Sliced Wasserstein kernel (SWK), the Persistence Weighted Gaussian kernel (PWGK), the Persistence Scale-Space kernel (PSSK) and the Persistence Fisher kernel (PFK).
-The six vectorization methods used here are: the Persistence Landscape, the Persistence Image, the Persistence Silhouette, the Persistence Entropy, the Adcock-Carlsson coordinates, the Tropical coordinates and Carrière's topological singature.
+The six vectorization methods used here are: the Persistence Landscape, the Persistence Image, the Persistence Silhouette, the Persistence Entropy, the Adcock-Carlsson coordinates, the Tropical coordinates and Carrière's topological signature.
 
 The goal is to see how these featurization methods behave in terms of computational efficiency and classification accuracy in the case of each data set.
 For all data sets, the code constructing the persistence diagrams, applying the featurization methods and using the SVC classification method is heavily inspired from the GUDHI Jupyter textbooks.
