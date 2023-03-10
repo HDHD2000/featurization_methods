@@ -566,7 +566,6 @@ print(entropy_sorted[0:50])
 ##=====================================================##
 ##CARLSSON COORDINATES
 
-"""
 
 X_train_features_0_ltr_cc1, X_train_features_0_ltr_cc2, X_train_features_0_ltr_cc3, X_train_features_0_ltr_cc4, X_test_features_0_ltr_cc1, X_test_features_0_ltr_cc2, X_test_features_0_ltr_cc3, X_test_features_0_ltr_cc4 = carlsson_coordinates(zero_dim_ltr_train, zero_dim_ltr_test)
 X_train_features_1_ltr_cc1, X_train_features_1_ltr_cc2, X_train_features_1_ltr_cc3, X_train_features_1_ltr_cc4, X_test_features_1_ltr_cc1, X_test_features_1_ltr_cc2, X_test_features_1_ltr_cc3, X_test_features_1_ltr_cc4 = carlsson_coordinates(one_dim_ltr_train, one_dim_ltr_test)
@@ -601,7 +600,6 @@ print('Train/test classification accuracy with persistence functions')
 print(clf.score(X_train_features, y_train))
 print(clf.score(X_test_features, y_test))
 
-"""
 
 ##========================================================##
 ##TROPICAL COORDINATES
@@ -645,6 +643,8 @@ print(clf.score(X_test_features, y_test))
 ##==========================================================##
 ##TOPOLOGICAL SIGNATURES
 
+"""
+
 dimensions = [5]
 
 train_accuracy = []
@@ -686,6 +686,7 @@ signature_results['Model Type'] = model_type
 signature_sorted = signature_results.sort_values(by=['Test Accuracy', 'Training Accuracy'],ascending=False)
 print(signature_sorted[0:50])
 
+"""
 
 ##========================================================##
 
